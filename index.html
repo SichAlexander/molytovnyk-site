@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Молитовник</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #fdfaf3;
+    --fg: #1f1a14;
+    --muted: #6b5e4a;
+    --accent: #8a6d3b;
+    --link: #6b4f1f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #15110a;
+      --fg: #f0e8d4;
+      --muted: #b9a986;
+      --accent: #d4b06a;
+      --link: #e6c47a;
+    }
+  }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: Georgia, "Times New Roman", "Liberation Serif", serif;
+    font-size: 17px;
+    line-height: 1.55;
+    padding: 60px 20px;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 560px; margin: 0 auto; text-align: center; }
+  h1 { font-size: 32px; line-height: 1.2; margin: 0 0 12px; color: var(--accent); }
+  p { color: var(--muted); margin: 8px 0 24px; }
+  ul { list-style: none; padding: 0; margin: 32px 0 0; }
+  li { margin: 10px 0; }
+  a { color: var(--link); text-underline-offset: 2px; font-size: 18px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Молитовник</h1>
+  <p>Електронна молитовна книга Української Греко-Католицької Церкви.</p>
+  <ul>
+    <li><a href="privacy/">Політика конфіденційності</a></li>
+    <li><a href="https://github.com/SichAlexander/Molutovnuk">Вихідний код (GitHub)</a></li>
+  </ul>
+</div>
+</body>
+</html>
