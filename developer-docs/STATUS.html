@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project Status Audit · Molytovnyk Docs</title>
+<link rel="stylesheet" href="assets/molytovnyk-docs.css">
+<style>
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin:0 0 22px;font-size:14px;color:var(--muted)}
+  .legend b{color:var(--ink)}
+  td .s{white-space:nowrap;font-weight:650}
+  .verdict-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:0 0 8px}
+  @media(max-width:680px){.verdict-grid{grid-template-columns:1fr}}
+  .vcard{background:var(--surface-2);border:1px solid var(--border-strong);border-radius:14px;padding:18px 20px}
+  .vcard h3{margin:0 0 6px}
+  .vcard .big{font-size:15px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="brand" href="index.html">Молитовник<b>·</b>Docs</a>
+  <span class="crumb">Project Status Audit</span>
+  <span class="spacer"></span>
+  <nav><a href="index.html">Docs home</a><a href="architecture.html">Architecture</a></nav>
+</div>
+
+<header class="masthead"><div class="inner">
+  <p class="crest">Молитовник · Progress Audit</p>
+  <h1>Android &amp; iOS Status</h1>
+  <p class="tagline">An evidence-based audit of what is done, partially done, or not started across both platforms — with the reasons behind each call.</p>
+  <div class="meta-row">
+    <span class="meta-pill">Code state · <b>main @ aef96f89 (Wave LL)</b></span>
+    <span class="meta-pill">Audited · <b>2026-06-29</b></span>
+    <span class="meta-pill">Method · <b>source-verified, not doc-claimed</b></span>
+  </div>
+</div></header>
+
+<nav class="sectionnav"><div class="wrap">
+  <a href="#summary">Summary</a>
+  <a href="#android">Android</a>
+  <a href="#ios">iOS</a>
+  <a href="#parity">Parity</a>
+  <a href="#ci">CI health</a>
+  <a href="#blockers">Blockers</a>
+</div></nav>
+
+<main class="page">
+
+<p class="legend"><span><b>✅ Done</b></span><span><b>🟡 Partial</b> / gated</span><span><b>⬜ Not started</b></span> · Every row was checked against current <code>main</code> source, PRs, and CI runs — not against doc "status" claims.</p>
+
+<section class="doc-section" id="summary">
+<h2>Executive summary</h2>
+<div class="verdict-grid">
+  <div class="vcard"><h3>Android</h3><p class="big"><strong>Pilot-ready.</strong> All eight V2 surfaces ship; the liturgical engine is test-gated; the single-parish pilot is finalized in code. The remaining gate is owner/ops logistics (keystore, Sentry DSN, clergy sign-off), not code.</p></div>
+  <div class="vcard"><h3>iOS</h3><p class="big"><strong>~80–85% of Android parity.</strong> A real SwiftUI app on the shared KMP engine; iPad/tablet merged 2026-06-28. The gap is live-Firebase verification, onboarding, and App Store cert — not missing screens.</p></div>
+</div>
+<p>Both platforms are <strong>well ahead of what <code>CLAUDE.md</code> implied</strong> (its "iOS KMP shell is future work" line was stale and has been corrected in this pass). The genuine risk on <em>both</em> sides is <strong>verification, not construction</strong>: code is written and offline-tested green, while the live/owner-gated paths (release signing, live Firebase, App Store) remain uncertified.</p>
+</section>
+
+<section class="doc-section" id="android">
+<h2>Android — what's done</h2>
+
+<h3>Feature surfaces</h3>
+<table>
+<thead><tr><th>Item</th><th>Status</th><th>Reason / evidence</th></tr></thead>
+<tbody>
+<tr><td>Home · Liturgy · Psalter · Calendar · Community</td><td class="s">✅ Done</td><td>All five ship and are reachable; tablet panes added (Wave TB.A, #1519).</td></tr>
+<tr><td>Prayers hub (rosary / akathist / canon)</td><td class="s">🟡 Partial</td><td>Surfaces ship; <strong>akathist text is <code>clergyReviewPending:true</code></strong> (awaits clergy verification).</td></tr>
+<tr><td>Kids Mode</td><td class="s">🟡 Partial</td><td>Picker + Kids Home with real streak/saint data ship; child profiles / quizzes / feast stories (Waves C.1–C.4) deferred post-MVP.</td></tr>
+<tr><td>Spiritual Advisor (chat)</td><td class="s">🟡 Partial</td><td>Real streaming <code>claude-haiku-4-5</code> advisor (RR.5) but <strong>hidden for pilot</strong> (<code>SPIRITUAL_ADVISOR_TOGGLE_ENABLED=false</code>). Code complete, deliberately off.</td></tr>
+</tbody>
+</table>
+
+<h3>Engine · content · infrastructure</h3>
+<table>
+<thead><tr><th>Item</th><th>Status</th><th>Reason / evidence</th></tr></thead>
+<tbody>
+<tr><td>CalendarService · LiturgyAssembler · Golden-Ordo</td><td class="s">✅ Done</td><td>Butcher Pascha + movable cycles; regression + parity snapshot tests gate it.</td></tr>
+<tr><td>Dual-calendar (fixed-date)</td><td class="s">✅ Done</td><td>Per-mode single-field match (Wave OT.8); Julian Settings toggle behind a default-off flag.</td></tr>
+<tr><td>Julian <em>movable</em>-Paschalion offset</td><td class="s">⬜ Not started</td><td>Deferred <code>TODO(F.3)</code> (#1115). Fine — the Mukachevo pilot is new-calendar.</td></tr>
+<tr><td>Wave LL liturgy-language (CS↔UA)</td><td class="s">🟡 Partial</td><td>Full engineering shipped (#1532, DB→v49) but <strong>flag-OFF</strong>; the CS↔UA content is a clergy-reviewed long tail.</td></tr>
+<tr><td>Wave C.5 notation sheets</td><td class="s">🟡 Partial</td><td>Mechanism ships on a 1-chant placeholder; <strong>core-5 score images owner/clergy-gated</strong> (#1247) — flip on with no code change.</td></tr>
+<tr><td>Next-year Ustav (<code>ustav_2026_2027.json</code>)</td><td class="s">⬜ Not started</td><td>Only the eng scaffold/draft exists (<code>docs/clergy-review/</code>); clergy-paced, hard <strong>Sept 2026</strong> deadline.</td></tr>
+<tr><td>Tablet (Wave TB.A)</td><td class="s">✅ Done</td><td>Shipped 2026-06-25 (#1519): NavigationSuiteScaffold rail + per-surface panes + landscape Book mode.</td></tr>
+<tr><td>Firebase (community, FCM at-start, 16 functions, rules+tests)</td><td class="s">✅ Done</td><td>Live on <code>molytovnyk-40207</code>; at-start push #206 closed with two-device evidence; topic-slash prod bug (#1221) fixed.</td></tr>
+<tr><td>Tests / CI / self-hosted runner</td><td class="s">✅ Done</td><td>~408 unit-test files, 103 Paparazzi classes; remote CI green via self-hosted runner (the old "billing-blocked" banner is stale). <em>See CI health below for a date-pinned caveat.</em></td></tr>
+</tbody>
+</table>
+
+<h3>Release readiness (Play)</h3>
+<table>
+<thead><tr><th>Item</th><th>Status</th><th>Reason / evidence</th></tr></thead>
+<tbody>
+<tr><td>versionCode · Play assets · privacy URL · RP-wave hardening · single-parish seed</td><td class="s">✅ Done</td><td>versionCode 4; 512 icon + feature graphic + 7 screenshots + UA listing staged under <code>docs/release/</code>; privacy URL live (200); RC verdict GO.</td></tr>
+<tr><td>Production keystore (#1166)</td><td class="s">🟡 Partial</td><td>Signing config wired; <strong>keystore not provisioned</strong> — the gating item for upload.</td></tr>
+<tr><td>Sentry DSN</td><td class="s">🟡 Partial</td><td>Code complete; DSN still a placeholder — owner/ops swap before a live crash-reporting build.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section class="doc-section" id="ios">
+<h2>iOS — what's done</h2>
+<p>Scale check: <strong>~93 app Swift files / ~28k LOC, 25 snapshot-test suites, 246 committed baselines</strong>, the full Firebase iOS SDK wired as SPM packages, and Wave TB.B (iPad) merged. The shared engine is genuinely <em>consumed</em> from Swift, not reimplemented.</p>
+
+<h3>Foundation &amp; shared engine</h3>
+<table>
+<thead><tr><th>Item</th><th>Status</th><th>Reason / evidence</th></tr></thead>
+<tbody>
+<tr><td>Xcode project + KMP <code>Domain</code> XCFramework + SKIE</td><td class="s">✅ Done</td><td>Direct Gradle-integrated framework; SKIE bridges suspend→async + sealed→exhaustive Swift switch.</td></tr>
+<tr><td>Shared engine reuse via commonMain</td><td class="s">✅ Done</td><td>Swift call sites use <code>DailyOrdoUseCase</code>, <code>CalendarService.shared</code>, <code>LiturgyBlockTypeMapper.shared</code>, <code>StreakComputer.shared</code>. Golden-Ordo runs on <code>iosSimulatorArm64Test</code>.</td></tr>
+</tbody>
+</table>
+
+<h3>Per-surface parity</h3>
+<table>
+<thead><tr><th>Surface</th><th>Status</th><th>Reason / evidence</th></tr></thead>
+<tbody>
+<tr><td>Home+streak+reminders (iOS.6) · Nav graph (iOS.7) · Settings (iOS.9) · Calendar (iOS.10) · Liturgy reader · Prayers/rosary · Kids</td><td class="s">✅ Done</td><td>Real screens on real shared-core data; snapshot-tested.</td></tr>
+<tr><td>Community + Firebase (iOS.8) · Group Psalter</td><td class="s">🟡 Partial</td><td><strong>Code complete (real SDK calls), live-unverified.</strong> Firestore/Auth/FCM/AppCheck linked + dormant-guarded; live write/admin/FCM never run against the real backend (owner-gated).</td></tr>
+<tr><td>Onboarding / name→patron resolution</td><td class="s">⬜ Not started</td><td>First-run flow + patron resolution missing (read-only Saints browser exists).</td></tr>
+<tr><td>Spiritual Advisor chat</td><td class="s">⬜ Not started</td><td>Not ported (post-parity, lowest priority).</td></tr>
+<tr><td>Tablet / iPad (Wave TB.B)</td><td class="s">✅ Done</td><td>Merged 2026-06-28 (#1526 + nits #1536): split-view rail, Book mode, master-detail. <em>Verified merged + CI-green.</em></td></tr>
+<tr><td>App Store GA (iOS.11)</td><td class="s">⬜ Not started</td><td>Only the Google Sign-In slice landed; <strong>Apple Sign-In + account-deletion deferred</strong> (hard GA prerequisites); listing/TestFlight cert owner-gated.</td></tr>
+<tr><td>Remote iOS CI</td><td class="s">🟡 Partial</td><td>macOS <code>ios-kmp-tests</code> job is <code>if:false</code> (#1486) — no automated iOS regression wall on <code>main</code>, only local <code>local-ios-build.sh</code>.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section class="doc-section" id="parity">
+<h2>Android ↔ iOS parity snapshot</h2>
+<table>
+<thead><tr><th>Surface</th><th>Android</th><th>iOS</th></tr></thead>
+<tbody>
+<tr><td>Liturgical engine (shared)</td><td>✅</td><td>✅ (same commonMain code)</td></tr>
+<tr><td>Home / streak / reminders</td><td>✅</td><td>✅</td></tr>
+<tr><td>Liturgy reader · Psalter · Calendar</td><td>✅</td><td>✅</td></tr>
+<tr><td>Prayers / rosary · Kids · Settings</td><td>✅</td><td>✅</td></tr>
+<tr><td>Community + Firebase</td><td>✅ live</td><td>🟡 code-complete, live-unverified</td></tr>
+<tr><td>Tablet / large-screen</td><td>✅ (TB.A)</td><td>✅ (TB.B)</td></tr>
+<tr><td>Onboarding</td><td>✅</td><td>⬜</td></tr>
+<tr><td>Spiritual Advisor</td><td>🟡 (built, hidden)</td><td>⬜</td></tr>
+<tr><td>Store readiness</td><td>🟡 keystore pending</td><td>⬜ App Store cert + Apple Sign-In</td></tr>
+</tbody>
+</table>
+</section>
+
+<section class="doc-section" id="ci">
+<h2>CI health — date-pinned liturgy canary</h2>
+<div class="callout warn">
+<p>Remote CI on <code>main</code> runs green via the self-hosted runner (the historical "GitHub-Actions billing-blocked" banner is stale). However, the <code>DailyReferenceComparisonTest</code> resolves its date as <strong><code>LocalDate.now()</code></strong> — it compares <em>today's</em> assembled liturgy against a committed reference fixture. CI was green through 2026-06-28 and flipped <strong>red on 2026-06-29 = the feast of Sts. Peter &amp; Paul</strong>, a major fixed feast that the test only exercises once a year.</p>
+<p>Reproduced locally, the <strong>only</strong> mismatch is <code>[FEAST_CLASS]</code>: the Ustav row <code>29.VI</code> declares <code>feast_class: "Господнє свято"</code> (rank 6) but V2 computes <code>POLYELEOS</code> (rank 3), and the promotion-only comparator flags the downgrade. Readings (Ап 2 Кор 193, Єв Мт 67), cycle (Octoechos wk 6), and tone (4) all <strong>match</strong> the reference. Peter &amp; Paul is canonically a great <em>apostles'</em> feast, not a Lord's feast, so the Ustav tag may itself be the imperfect side; there is also no <code>feast_fixed_*</code> service definition for it. User-facing impact is minor (correct readings/tone/cycle; only the feast-rank tier differs on one day a year). Tracked in <a href="https://github.com/SichAlexander/Molutovnuk/issues/1540">#1540</a> — both the classification question and the structural <code>LocalDate.now()</code> test-fragility (a "today"-based canary makes <code>main</code>'s CI calendar-dependent).</p>
+</div>
+</section>
+
+<section class="doc-section" id="blockers">
+<h2>Top blockers</h2>
+<h3>Android pilot (all owner/ops, no code defects)</h3>
+<ol>
+<li>Provision the <strong>production keystore</strong> (#1166) — hard upload gate.</li>
+<li>Swap the <strong>Sentry DSN</strong> placeholder.</li>
+<li><strong>Clergy sign-off</strong> (#1164 activation, #1165 text fidelity).</li>
+<li>One 5-point on-device smoke on the signed AAB.</li>
+</ol>
+<h3>iOS parity / release</h3>
+<ol>
+<li><strong>Live Firebase verification</strong> — highest risk; matches the project's repeated "offline-green / live-broken" failure class.</li>
+<li>TestFlight / App Store cert gates.</li>
+<li><strong>Apple Sign-In + account-deletion</strong> (App Store prerequisites).</li>
+<li>First-run <strong>onboarding</strong> flow.</li>
+<li>Background FCM receive handler; re-arm the macOS CI job.</li>
+</ol>
+</section>
+
+</main>
+
+<footer>
+  <p><b>Molytovnyk — Progress Audit.</b> Generated 2026-06-29 against <code>main</code> @ <code>aef96f89</code> (Wave LL), TB.B (#1526) verified merged. Every status was checked against source, PRs, and CI runs. See the <a href="architecture.html">architecture reference</a> and the <a href="index.html#features">feature chapters</a>.</p>
+</footer>
+
+</body>
+</html>

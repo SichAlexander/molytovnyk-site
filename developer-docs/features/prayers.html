@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prayers Hub · Molytovnyk Docs</title>
+<link rel="stylesheet" href="../assets/molytovnyk-docs.css">
+</head>
+<body>
+
+<div class="topbar">
+  <a class="brand" href="../index.html">Молитовник<b>·</b>Docs</a>
+  <span class="crumb">Features / Prayers Hub</span>
+  <span class="spacer"></span>
+  <nav><a href="../index.html">All features</a><a href="../architecture.html">Architecture</a></nav>
+</div>
+
+<header class="masthead"><div class="inner">
+  <p class="crest">Feature chapter · :feature:rosary-v2</p>
+  <h1>Prayers Hub</h1>
+</div></header>
+
+<nav class="sectionnav"><div class="wrap">
+  <a href="#purpose">Purpose</a>
+  <a href="#functionality">Functionality</a>
+  <a href="#dependencies">Dependencies</a>
+  <a href="#navigation">Navigation flow</a>
+</div></nav>
+
+<main class="page">
+
+<p class="lead">The Молитви (Prayers) hub gathers the devotional content that lives outside the Divine Liturgy — the rosary (Вервиця), the Akathist to the Theotokos, the Canon of the Day, and a categorized library of personal and daily prayers.</p>
+<table class="facts"><tbody>
+<tr><th>Bottom-nav tab</th><td>Молитви (prayers)</td></tr>
+<tr><th>Entry route</th><td><code>prayers</code> (<code>MolytovnykRoutes.Prayers</code>)</td></tr>
+<tr><th>Presentation</th><td>Top-level tab — keeps the bottom nav. The rosary focus session (<code>rosary</code>) and the akathist / canon / section readers are <code>@Modal</code> and run full-bleed with the nav suppressed.</td></tr>
+<tr><th>Module</th><td><span class="tag">:feature:rosary-v2</span></td></tr>
+<tr><th>Depends on</th><td><span class="tag">:core:designsystem</span> <span class="tag">:core:domain</span> <span class="tag">:core:database</span></td></tr>
+<tr><th>Key screens</th><td><code>PrayersListRoute</code>, <code>RosaryRoute</code> (<code>RosaryOverviewScreen</code> + <code>RosaryFocusScreen</code>), <code>AkafistRoute</code>, <code>CanonOfDayRoute</code>, <code>PrayerSectionReaderRoute</code></td></tr>
+</tbody></table>
+<section class="doc-section" id="purpose"><h2>Purpose</h2>
+<p>Despite the module name, <span class="tag">:feature:rosary-v2</span> owns the entire <strong>Молитви</strong> prayers hub — the second tab on the five-tab bottom rail (Дім · Літургія · Молитви · Спільнота · Більше). Where <span class="tag">:feature:liturgy-v2</span> covers the Divine Liturgy itself, the Prayers hub covers <em>devotional</em> practice around it: the rosary, the Great Akathist, the seven-weekday Canon of the Day, and a searchable library of daily and personal prayers.</p>
+<p>The landing surface is a categorized library (<code>PrayersListRoute</code>, titled <em>«Молитви»</em> under the БІБЛІОТЕКА eyebrow) grouping rows into four sections: <strong>Щодня</strong> (Щоденні / Ранкові / Вечірні molitvy), <strong>Свята і пости</strong>, <strong>Псалтир і канони</strong> (today's kathisma, a «Усі 20 кафизм» link, Канон дня, Акафіст Богородиці), and <strong>Особисті</strong> (Вервиця + intention placeholders). Several rows are intentionally <em>inert</em> — they surface the information architecture but their <code>onClick</code> is <code>null</code> until the matching content ships in <code>molutovnyk_parsed.json</code> (e.g. «Божественна Літургія», «За родину», «За хворих»).</p></section>
+<section class="doc-section" id="functionality"><h2>Functionality</h2>
+<ul>
+<li><strong>Prayers library</strong> (<code>PrayersListRoute</code>) — a flat, scrollable categorized list with a gilt-bordered search pill that case-insensitively filters every group by <code>title + meta</code>; when no row matches, a «Нічого не знайдено» empty state renders. Rows deep-link out to the rosary, the psalter reader at today's kathisma, the full 20-kathisma list, the canon and akathist readers, and the home prayer-session carousel.</li>
+<li><strong>Rosary — Вервиця</strong> (<code>RosaryRoute</code>) — a single Koin entry hosting <em>two stages</em> that swap composables internally: <code>RosaryOverviewScreen</code> (ring + decade pins, center stat block, gilt resume card) and <code>RosaryFocusScreen</code>, the active prayer session. The focus stage shows a live per-second timer, an Apple-Watch-style <code>ActivityRing</code> (arc fills Pater → 10 Aves → Gloria, fraction = <code>(1 + aveCount + glorias) / 12</code>), tap-to-advance phase progression, and a decade-complete bloom overlay. <code>RosaryViewModel</code> keeps timers and Room-persisted decades consistent across both stages, seeds today's mystery group by day-of-week, and ties completion into <code>StreakRepository</code>.</li>
+<li><strong>Akathist reader</strong> (<code>AkafistRoute</code>) — a full-screen reader for the Акафіст до Пресвятої Богородиці (the Великий Акафіст), rendering numbered <em>Кондак</em> / <em>Ікос</em> sections in Cormorant body type. <div class="callout warn">The bundled akathist text is <strong>clergy-review-pending</strong>: when <code>AkathistContent.clergyReviewPending</code> is true the hero shows an italic faded-ochre notice — «Текст очікує на звірення духовенством.» The UA text is transcribed from a cited public-domain UGCC source but awaits clergy verification.</div></li>
+<li><strong>Canon of the Day</strong> (<code>CanonOfDayRoute</code>) — a reader keyed on the current ISO weekday; <code>CanonOfDayViewModel</code> picks the day's canon at construction. Items are typed (<code>irmos</code> / <code>tropar</code> / <code>katavasia</code> rendered as labelled Cormorant blocks; <code>rubric</code> as italic faded-ochre). Sunday ships as a single rubric-only placeholder (the Octoechos tone-canon).</li>
+<li><strong>Generic section reader</strong> (<code>PrayerSectionReaderRoute</code>) — a long-scroll reader over any <code>molutovnyk_parsed.json</code> section (e.g. <code>section_ранішні_молитви</code>), driven by <code>PrayerSectionReaderViewModel</code> from a URL-encoded <code>sectionId</code> nav arg. Renders per-item titles plus <code>rubric</code> / <code>prayer</code> / <code>text</code> bodies, with Loading / Ready / Empty / Error states.</li>
+</ul></section>
+<section class="doc-section" id="dependencies"><h2>Dependencies</h2>
+<p>The module is Compose-only (Material3 + Koin); it has no Firebase or network deps. Project dependencies:</p>
+<table><thead><tr><th>Dependency</th><th>Config</th><th>Role</th></tr></thead><tbody>
+<tr><td><span class="tag">:core:designsystem</span></td><td><code>api</code></td><td>V2 tokens — <code>LocalMolytovnykColors</code>, <code>MolytovnykDimens</code>, Cormorant/Inter typography roles (<code>CormorantGaramond</code>, <code>BadgeEyebrow</code>, <code>Eyebrow</code>, <code>SettingsBandTitle</code>).</td></tr>
+<tr><td><span class="tag">:core:domain</span></td><td><code>api</code></td><td>Pure-Kotlin business logic (KMP-ready core shared across feature modules).</td></tr>
+<tr><td><span class="tag">:core:database</span></td><td><code>implementation</code></td><td>Room-backed content + repositories: <code>RosaryRepository</code> / <code>RosarySession</code>, <code>StreakRepository</code>, <code>AkathistRepository</code> (<code>AkathistContent</code>/<code>AkathistSection</code>), <code>CanonDayRepository</code> (<code>CanonDayItemEntity</code>), the <code>MolutovnykItemEntity</code> reader content, and bundled <code>RosaryContent</code>.</td></tr>
+</tbody></table>
+<p><strong>Notable libs:</strong> Compose BOM + Material3, <code>koin-androidx-compose</code> (per-screen <code>koinViewModel()</code>), kotlinx-coroutines, and <span class="tag">Paparazzi</span> for screenshot baselines (wired since Wave M.1.K3 for <code>PrayersListRoute</code>).</p>
+<p><strong>Reverse-deps:</strong> only <span class="tag">:app</span> consumes the module — it imports the routes and wires them into <code>MolytovnykNavGraph</code>. (<span class="tag">:feature:chat-v2</span> mentions the module name only in a build-file comment, not as an actual dependency.)</p></section>
+<section class="doc-section" id="navigation"><h2>Navigation flow</h2>
+<p>The Молитви tab (<code>MolytovnykRoutes.Prayers</code> = <code>"prayers"</code>, registered in <code>MolytovnykBottomNav</code> with the <em>VolunteerActivism</em> icon) lands on <code>PrayersListRoute</code>. The list stays on the bottom nav so users can hop between tabs. From its rows, navigation fans out to the rosary and to the modal readers:</p>
+<ul>
+<li><strong>Вервиця</strong> → <code>rosary</code> (<code>MolytovnykRoutes.Rosary</code>, <code>@Modal</code>). One route hosts both rosary stages; the overview keeps a back affordance, and the focus stage runs full-bleed with the bottom nav suppressed. <code>onClose</code> is wired to <code>popBackStack()</code>.</li>
+<li><strong>Канон дня</strong> → <code>canon/day</code> (<code>@Modal</code>); <strong>Акафіст Богородиці</strong> → <code>akathist/theotokos</code> (<code>@Modal</code>); daily/non-daily prayer rows → <code>prayer/section/{sectionId}</code> (<code>@Modal</code>, URL-encoded id) or the home carousel at <code>prayer/{routineId}</code> (<code>morning</code> / <code>evening</code> / <code>daily</code>).</li>
+<li><strong>Link out to Psalter</strong> — the «Псалтир» row deep-links into the kathisma reader at today's kathisma (<code>psalter/reader/{n}</code>), and «Усі 20 кафизм» navigates to <code>psalter/all</code> (the existing <code>KathismaListRoute</code> in <span class="tag">:feature:psalter-v2</span>).</li>
+</ul>
+<p>Modal status comes from the KSP-generated <code>MODAL_ROUTES</code> set (each constant carries <code>@Modal</code>); <code>MainActivityV2</code> reads it to hide the bottom nav. Back from any modal reader pops to the Prayers list; back from the rosary focus stage exits the session (saving progress) and returns to the overview.</p>
+<pre><code>Molytovnyk bottom nav
+└─ Молитви  [tab: prayers]  ── PrayersListRoute  (nav visible)
+   ├─ Вервиця ─────────────▶ rosary            @Modal  RosaryRoute
+   │                          ├─ RosaryOverviewScreen   (Start / Resume)
+   │                          └─ RosaryFocusScreen      (timer + ActivityRing,
+   │                                                     tap-advance, decade bloom)
+   ├─ Канон дня ───────────▶ canon/day         @Modal  CanonOfDayRoute
+   ├─ Акафіст Богородиці ──▶ akathist/theotokos @Modal  AkafistRoute  (clergy-review-pending)
+   ├─ Ранкові/Вечірні/      ┌▶ prayer/{routineId}        @Modal  (home carousel)
+   │  Щоденні молитви ──────┘
+   ├─ (other section rows) ▶ prayer/section/{sectionId} @Modal  PrayerSectionReaderRoute
+   ├─ Псалтир ─────────────▶ psalter/reader/{n}   (→ :feature:psalter-v2)
+   └─ Усі 20 кафизм ───────▶ psalter/all          (→ :feature:psalter-v2)
+</code></pre></section>
+
+<div class="chapter-nav">
+  <a class="prev" href="liturgy.html"><span class="dir">← Previous</span><span class="ttl">Liturgy</span></a>
+  <a class="next" href="psalter.html"><span class="dir">Next →</span><span class="ttl">Psalter</span></a>
+</div>
+
+</main>
+
+<footer>
+  <p><b>Molytovnyk — Prayers Hub chapter.</b> Generated against <code>main</code> @ <code>aef96f89</code> (Wave LL). See the <a href="../architecture.html">architecture reference</a> for the system-wide view, or <a href="../index.html">all feature chapters</a>.</p>
+</footer>
+
+</body>
+</html>

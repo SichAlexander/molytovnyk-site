@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home · Molytovnyk Docs</title>
+<link rel="stylesheet" href="../assets/molytovnyk-docs.css">
+</head>
+<body>
+
+<div class="topbar">
+  <a class="brand" href="../index.html">Молитовник<b>·</b>Docs</a>
+  <span class="crumb">Features / Home</span>
+  <span class="spacer"></span>
+  <nav><a href="../index.html">All features</a><a href="../architecture.html">Architecture</a></nav>
+</div>
+
+<header class="masthead"><div class="inner">
+  <p class="crest">Feature chapter · :feature:home-v2</p>
+  <h1>Home</h1>
+</div></header>
+
+<nav class="sectionnav"><div class="wrap">
+  <a href="#purpose">Purpose</a>
+  <a href="#functionality">Functionality</a>
+  <a href="#dependencies">Dependencies</a>
+  <a href="#navigation">Navigation flow</a>
+</div></nav>
+
+<main class="page">
+
+<p class="lead">Home is the app's landing surface — the <strong>Дім</strong> tab and default start destination — presenting the day at a glance (greeting, feast/daily card, the prayer-task list with streak credit, upcoming events, and reminder banners) and acting as the gateway to the <strong>More</strong> hub and its settings, reminders, onboarding, streak, and saints sub-surfaces.</p>
+<table class="facts"><tbody>
+<tr><th>Bottom-nav tab</th><td>Дім (home)</td></tr>
+<tr><th>Entry route</th><td><code>MolytovnykRoutes.Home</code> = <code>"home"</code> — the NavHost <code>startDestination</code> default (overridden to <code>OnboardingWelcome</code> on first launch)</td></tr>
+<tr><th>Presentation</th><td>Top-level tab (keeps the bottom nav, along with its <code>More</code> sibling). Its sub-routes are <code>@Modal</code> full-screen (hide the bottom nav): <code>Settings</code>, <code>SettingsPrivacy</code>, <code>About</code>, <code>Support</code>, <code>RemindersSettings</code>, <code>StreakDetail</code>, <code>SaintsBrowser</code>/<code>AngelDayBrowser</code>, <code>PrayerSession</code> (<code>"prayer/{routineId}"</code>), and the whole <code>onboarding/*</code> pager.</td></tr>
+<tr><th>Module</th><td><span class="tag">:feature:home-v2</span></td></tr>
+<tr><th>Depends on</th><td><span class="tag">:core:designsystem</span> <span class="tag">:core:domain</span> <span class="tag">:core:database</span> <span class="tag">:core:ui</span> <span class="tag">:core:data-cloud</span></td></tr>
+<tr><th>Key screens</th><td><code>HomeScreen</code>, <code>MoreScreen</code>, <code>SettingsRoute</code>/<code>SettingsMasterDetailScreen</code>, <code>RemindersRoute</code>, <code>PrayerSessionScreen</code>, <code>StreakDetailScreen</code>, <code>SaintsBrowserScreen</code>, <code>onboarding/*</code></td></tr>
+</tbody></table>
+<section class="doc-section" id="purpose"><h2>Purpose</h2>
+<p>Home is where the app opens. For a Ukrainian Greek Catholic user — including children (7+) and newcomers to the tradition — it answers "what does today look like, and what should I pray?" in a single scroll, before any deeper navigation. It is both the <strong>landing surface</strong> (the default NavHost <code>startDestination</code>, <code>MolytovnykRoutes.Home</code>) and the <strong>organizational hub</strong>: the module also owns the <strong>Більше</strong> (More) tab, so everything that isn't a primary worship surface — settings, reminders, the streak detail, the saints browser, onboarding — is reached through screens this module ships.</p>
+<p>On a fresh install the graph starts at <code>OnboardingWelcome</code> instead; the gate is resolved <em>once</em> by <code>MainActivityV2</code> from the persisted <code>onboardingShown</code> preference before the NavHost first composes, so there is no Home-then-onboarding flash.</p>
+</section>
+<section class="doc-section" id="functionality"><h2>Functionality</h2>
+<p><code>HomeScreen</code> composes a vertical stack of independent sections (under <code>sections/</code>), each backed by state the <code>HomeViewModel</code> derives from preferences, the liturgical engine, and the streak/reminders stores:</p>
+<ul>
+<li><strong>Greeting + top bar</strong> — <code>GreetingSection</code> / <code>TopBarSection</code>, with a time-of-day greeting (re-evaluated via <code>GreetingBoundaryTick</code>) and a bell button routing to Reminders plus an avatar routing to Settings → account.</li>
+<li><strong>Daily / feast card</strong> — <code>DailyCardSection</code> (<code>DailyCard</code>) renders the day's feast or saint. A <code>GREAT_SAINT</code> day exposes a "Свято дня" CTA that opens the <code>GreatSaintReveal</code> sheet (tropar + kondak).</li>
+<li><strong>Prayer-task list with streak credit</strong> — <code>TaskSection</code> lists the day's prayer slots; the <code>HomeViewModel</code> computes the <code>routineId</code> from the time window (morning &lt; 11:00 · daily 11:00–19:00 · evening from 19:00) and never re-offers a completed slot. Tapping a task opens the <code>@Modal</code> <code>PrayerSessionScreen</code>; completing it credits the streak (surfaced in <code>StreakDetailScreen</code>).</li>
+<li><strong>Upcoming-events strip</strong> — <code>UpcomingEventsSection</code> shows the next parish/calendar events; CTAs route to the calendar, a specific day, or the dedicated 14-day <code>UpcomingEventsListScreen</code>, with an empty-state "add event" path.</li>
+<li><strong>Permission / nudge banners</strong> — the two reminder banners are <strong>mutually exclusive by construction</strong>. <code>HomeViewModel</code> exposes a private <code>BannerGates(showPermissionBanner, showReminderNudge)</code> holder whose <code>combine</code> fold sets <code>showReminderNudge = raw &amp;&amp; !permissionBanner</code> — the invariant is enforced at the data layer, not by an <code>else if</code> in the screen. The permission banner fires only when a slot is enabled but notifications are denied; the nudge only when no slot is enabled.</li>
+<li><strong>More hub + sub-surfaces</strong> — <code>MoreScreen</code> (<code>MoreViewModel</code>) is the curated <strong>Більше</strong> landing (grouped Читання / Парафія / Молитовний ритм / Застосунок lists) and the inbound edge to <code>SettingsRoute</code>, <code>RemindersRoute</code>, the Psalter family, <code>ParishPicker</code>, <code>SaintsBrowserScreen</code>, <code>SupportRoute</code>/<code>PrivacyRoute</code>/<code>AboutRoute</code>, the Spiritual Advisor (flag-gated), and onboarding re-run. Capability gates (e.g. <code>createEventEnabled = parishName != null</code>) live in the ViewModels.</li>
+</ul>
+</section>
+<section class="doc-section" id="dependencies"><h2>Dependencies</h2>
+<table><thead><tr><th>project() dep</th><th>Role</th></tr></thead><tbody>
+<tr><td><span class="tag">:core:designsystem</span> (<code>api</code>)</td><td>V2 tokens, theme, and shared components (<code>MolytovnykCard</code>/<code>MolytovnykButton</code>, palettes, dimens) every Home section renders against.</td></tr>
+<tr><td><span class="tag">:core:domain</span> (<code>api</code>)</td><td>Pure-Kotlin business logic / models (liturgical-day, streak, reminder types) the ViewModels consume.</td></tr>
+<tr><td><span class="tag">:core:database</span> (<code>implementation</code>)</td><td>Room + the liturgical engine (<code>CalendarService</code>, feast/saint entities) and preference sources backing the daily card, tasks, and angel-day resolution.</td></tr>
+<tr><td><span class="tag">:core:ui</span> (<code>implementation</code>)</td><td><code>rememberShakeDetector</code> for the Home shake-to-reveal angel-day hook (Wave AD.1 K4).</td></tr>
+<tr><td><span class="tag">:core:data-cloud</span> (<code>implementation</code>)</td><td>Firebase layer — the Settings Account band consumes the auth gateway + Credential Manager launcher (<code>FirebaseAuthGateway</code>, <code>GoogleSignInLauncher</code>, <code>AuthState</code>); the conventional <code>:feature:* → :core:data-cloud</code> edge.</td></tr>
+</tbody></table>
+<p><strong>Notable external libs:</strong> Compose BOM + Material3 (and <code>material3.adaptive.layout</code>/<code>navigation</code> for the Settings master-detail pane scaffold, Wave TB.A), <code>activity-compose</code>, <code>lifecycle-viewmodel-compose</code>, Koin (<code>koin-android</code> + <code>koin-androidx-compose</code>), kotlinx-coroutines, and Paparazzi for screenshot baselines (this is a heavy Paparazzi module). A mirrored <code>buildConfigField CLERGY_UNLOCK_CODE</code> gates the Settings clergy-review surface (kept in sync with <code>:app</code> because the module can't import <code>:app</code>'s BuildConfig).</p>
+<div class="callout"><strong>Reverse deps:</strong> <span class="tag">:app</span> wires this module in — <code>MainActivityV2</code> resolves the onboarding start-destination gate and <code>MolytovnykNavGraph</code> registers <code>HomeRoute</code>/<code>MoreRoute</code> and every Home sub-route, injecting the ViewModels via Koin. No other feature module depends on <code>:feature:home-v2</code>.</div>
+</section>
+<section class="doc-section" id="navigation"><h2>Navigation flow</h2>
+<p>Home is the first of the bottom-nav tabs and the NavHost's default <code>startDestination</code> (<code>MolytovnykRoutes.Home</code>). The user reaches its sub-surfaces two ways: directly from Home (a task opens the <code>@Modal</code> <code>PrayerSession</code>; the bell opens <code>RemindersSettings</code>; the avatar opens <code>Settings</code> anchored to the account band; the streak chip opens <code>StreakDetail</code>; event CTAs open the calendar or <code>UpcomingEvents</code>), or via the <strong>Більше</strong> tab, which fans out to Settings, Reminders, Psalter, parish tools, Support/Privacy/About, the saints browser, and the Spiritual Advisor. Tab-to-tab moves (e.g. the Community card) use <code>popUpTo(start) + saveState + restoreState + launchSingleTop</code> so back from a tab returns to Home, not a redundant stack entry. Modal routes get full-screen treatment and hide the bottom nav; back from a modal pops to the surface that launched it. On first launch the start destination is <code>OnboardingWelcome</code> instead, and the pager (Welcome → SignIn → Parish → Reminders → [AngelDay, pilot-gated]) flips <code>onboardingShown</code> on exit, landing on Home.</p>
+<pre><code>first launch ─ onboardingShown? ─ no ─→ OnboardingWelcome (@Modal pager)
+                                          Welcome → SignIn → Parish → Reminders → [AngelDay]
+                                          └─ exit/skip → setOnboardingShown(true) → Home
+                    │ yes
+                    ▼
+[ Дім tab ]  Home  ("home", start destination, bottom nav visible)
+   │
+   ├─ task tap ────────→ prayer/{routineId}        @Modal  ── complete → streak credit → back
+   ├─ bell ────────────→ settings/reminders        @Modal  (RemindersRoute)
+   ├─ avatar ──────────→ settings?section=account  @Modal  (SettingsRoute)
+   ├─ streak chip ─────→ streak/detail             @Modal  (StreakDetailScreen)
+   ├─ daily card CTA ──→ great-saint-reveal        @Modal
+   ├─ shake / chip ────→ angel-day-reveal          @Modal
+   ├─ events CTAs ─────→ calendar · calendar/day/{date} · upcoming-events  @Modal
+   └─ Community card ──→ community  (tab switch: popUpTo start, restoreState)
+   │
+[ Більше tab ]  More  ("more", bottom nav visible)
+   ├─→ settings          @Modal   ├─→ settings/reminders @Modal
+   ├─→ streak/detail     @Modal   ├─→ psalter (+ family)
+   ├─→ parish/picker     @Modal   ├─→ support · settings/privacy · settings/about  @Modal
+   ├─→ advisor           @Modal (flag-gated)
+   └─→ onboarding/welcome @Modal  (re-run pager)
+
+back: @Modal pops → launching surface;  tab → Home;  Home (root) → exit app
+</code></pre>
+</section>
+
+<div class="chapter-nav">
+  <a class="prev" href="../index.html"><span class="dir">← Back</span><span class="ttl">Docs home</span></a>
+  <a class="next" href="liturgy.html"><span class="dir">Next →</span><span class="ttl">Liturgy</span></a>
+</div>
+
+</main>
+
+<footer>
+  <p><b>Molytovnyk — Home chapter.</b> Generated against <code>main</code> @ <code>aef96f89</code> (Wave LL). See the <a href="../architecture.html">architecture reference</a> for the system-wide view, or <a href="../index.html">all feature chapters</a>.</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calendar · Molytovnyk Docs</title>
+<link rel="stylesheet" href="../assets/molytovnyk-docs.css">
+</head>
+<body>
+
+<div class="topbar">
+  <a class="brand" href="../index.html">Молитовник<b>·</b>Docs</a>
+  <span class="crumb">Features / Calendar</span>
+  <span class="spacer"></span>
+  <nav><a href="../index.html">All features</a><a href="../architecture.html">Architecture</a></nav>
+</div>
+
+<header class="masthead"><div class="inner">
+  <p class="crest">Feature chapter · :feature:calendar-v2</p>
+  <h1>Calendar</h1>
+</div></header>
+
+<nav class="sectionnav"><div class="wrap">
+  <a href="#purpose">Purpose</a>
+  <a href="#functionality">Functionality</a>
+  <a href="#dependencies">Dependencies</a>
+  <a href="#navigation">Navigation flow</a>
+</div></nav>
+
+<main class="page">
+
+<p class="lead">The Calendar surface renders the Ukrainian Greek Catholic liturgical year — month grid, week/today/fast views, per-day detail, and full-text search — resolving each day's feast rank, vestment color, fast intensity, and tone from the shared liturgical engine, dual-calendar aware (Gregorian / Julian).</p>
+<table class="facts"><tbody>
+<tr><th>Reached from</th><td>Not a bottom-nav tab. Opened from the Home <em>"Найближчі події"</em> card (<code>onOpenCalendar</code> → <code>navController.navigate(MolytovnykRoutes.Calendar)</code>) and from the Upcoming-Events list's <em>"Перейти до календаря"</em> CTA. The five bottom-nav tabs are Дім / Літургія / Молитви / Спільнота / Більше — Calendar is none of them.</td></tr>
+<tr><th>Entry route</th><td><code>calendar</code> (<code>MolytovnykRoutes.Calendar</code>); day detail <code>calendar/day/{date}</code>, search <code>calendar/search</code>, admin editor <code>calendar/schedule/{date}</code></td></tr>
+<tr><th>Presentation</th><td><strong>Top-level</strong> — the <code>Calendar</code> grid keeps the bottom nav (browsing posture, sister to Liturgy/Psalter readers). <code>CalendarDay</code>, <code>CalendarSearch</code> and <code>CalendarSchedule</code> are <strong><code>@Modal</code></strong> (full-screen, bottom nav hidden via KSP-generated <code>MODAL_ROUTES</code>).</td></tr>
+<tr><th>Module</th><td><span class="tag">:feature:calendar-v2</span></td></tr>
+<tr><th>Depends on</th><td><span class="tag">:core:domain</span> <span class="tag">:core:database</span> <span class="tag">:core:designsystem</span> <span class="tag">:core:ui</span></td></tr>
+<tr><th>Key screens</th><td><code>CalendarScreen</code> (tabs <code>TodayTab</code>, <code>WeekTab</code>, <code>MonthTab</code>, <code>FastTab</code> + <code>AgendaListContent</code>), <code>DayDetailScreen</code>, <code>CalendarSearchScreen</code>, <code>CalendarDetailPaneRoute</code> (tablet), <code>CreateScheduleScreen</code> (admin)</td></tr>
+</tbody></table>
+<section class="doc-section" id="purpose"><h2>Purpose</h2>
+<p>Calendar is the V2 liturgical-calendar surface. It presents the church year so a child or newcomer can see, for any given day, <strong>what is celebrated, how it is fasted, and which vestment color is worn</strong> — derived deterministically from the same engine that drives the Divine Liturgy.</p>
+<ul>
+<li><strong>Movable + fixed cycles.</strong> Each cell runs <code>CalendarService.getLiturgicalDayContext</code>, which detects the movable cycle (Triodion / Pentecostarion / Octoechos period off the Butcher-algorithm Pascha) and resolves the fixed-date feast for the day.</li>
+<li><strong>Vestment color.</strong> <code>VestmentColorResolver</code> maps the day's <code>LiturgicalDayContext</code> (feast class, afterfeast/forefeast keys, movable-Sunday commemoration, season) to a <code>VestmentColorUi</code> (WHITE / GREEN / RED / PURPLE / GOLD) — total by design, with current-day feast taking precedence over a background afterfeast color.</li>
+<li><strong>Fast intensity.</strong> <code>FastIntensityResolver</code> derives a conservative, rule-defensible <code>FastIntensityUi</code> (NONE → DRY → BOILED → OIL → WINE → FISH → FULL_FAST) — Great Friday, Bright Week, the four multi-day fast seasons, weekly Wed/Fri abstinence, and explicit <code>DailyInfo</code> exemptions (Риба / Вино / Олива). Precise per-day katastasis is gated on Молитовник cross-source seeding (the <code>/dyak</code> gate).</li>
+<li><strong>Dual-calendar aware.</strong> <code>CalendarMonthAssembler</code> threads a <code>calendarModeProvider</code> (<code>CalendarMode</code> {GREGORIAN default, JULIAN}, read from <code>UserPreferences.calendarMode</code>) into every cell's resolve, so the grid re-reckons feasts on the user's old/new-calendar setting.</li>
+</ul>
+</section>
+<section class="doc-section" id="functionality"><h2>Functionality</h2>
+<ul>
+<li><strong>Tabbed calendar (<code>CalendarScreen</code>).</strong> A persistent 4-tab pill row — <code>CalendarTab.TODAY</code> / <code>WEEK</code> / <code>MONTH</code> / <code>FAST</code> — over a single <code>CalendarViewModel</code> state. <code>MonthTab</code> renders a 6×7 <strong>Sunday-first</strong> grid assembled by <code>CalendarMonthAssembler</code>; <code>WeekTab</code> adds a compact <em>"Ап. … · Єв. …"</em> reading line; <code>TodayTab</code> focuses the current day; <code>FastTab</code> surfaces the fast view and a chronological <code>AgendaListContent</code> (feast rows merged with dated parish events) from <code>YearAgenda.kt</code>.</li>
+<li><strong>Per-day detail (<code>DayDetailScreen</code> / <code>DayDetailViewModel</code>).</strong> Full-screen reading for one day (ISO <code>date</code> nav arg via auto-wired <code>SavedStateHandle</code>): feast title, tone, vestment swatch, fast level (with real <code>DailyInfo</code> exemption flags), readings, and a primary CTA (<em>"Молитися сьогодні"</em> → prayer-of-day reader). Supports adding a personal event.</li>
+<li><strong>Full-text search (<code>CalendarSearchScreen</code> / <code>CalendarSearchViewModel</code>).</strong> A four-state overlay (empty-recents / typing / grouped results / no-results) over a debounced query pipeline — searches saints, feasts, and dates; a date-jump hero card; recent-search chips; and a no-results CTA that opens the simple-event-create form pre-filled with the typed query.</li>
+<li><strong>Tablet list-detail (<code>CalendarDetailPaneRoute</code> / <code>CalendarDetailPaneViewModel</code>).</strong> At ≥ 600dp width the screen switches to a <code>ListDetailPaneScaffold</code> (month grid in the list pane, day-detail inline in the detail pane keyed on the selected date); compact (&lt; 600dp) flow is byte-identical to the phone baseline. Layout routes on measured dp width, never on orientation.</li>
+<li><strong>Admin create-schedule (<code>CreateScheduleScreen</code> / <code>CreateScheduleViewModel</code>).</strong> Capability-gated liturgy-schedule editor for a day (add/remove service rows, time/name/location, highlight, publish). Reached only when the Day-Detail capability gate (<code>state.canEditSchedule</code>, off <code>event.edit_recurrence</code>) is true; a successful publish auto-pops back to Day Detail.</li>
+</ul>
+</section>
+<section class="doc-section" id="dependencies"><h2>Dependencies</h2>
+<table><thead><tr><th>Dependency</th><th>Role</th></tr></thead><tbody>
+<tr><td><span class="tag">:core:domain</span> (<code>api</code>)</td><td>Pure-Kotlin liturgical model — <code>LiturgicalDayContext</code>, <code>FeastClass</code>, <code>CalendarMode</code>, <code>LiturgicalRule</code>, <code>LiturgicalPeriod</code>, movable-cycle / commemoration types consumed by the assemblers.</td></tr>
+<tr><td><span class="tag">:core:database</span> (<code>implementation</code>)</td><td>The engine itself — <code>CalendarService</code> (Pascha, feast/tone lookup, <code>getLiturgicalDayContext</code>, <code>toUstavDateKey</code>) plus the <code>UstavDao</code>-backed title / reading / feast-class providers the DI layer passes into <code>CalendarMonthAssembler</code>.</td></tr>
+<tr><td><span class="tag">:core:designsystem</span> (<code>api</code>)</td><td>V2 tokens, <code>MolytovnykThemeV2</code>, <code>MolytovnykDimens</code>, <code>DetailPaneState</code> / <code>paneDividerColor</code> / window-size-class helpers for the adaptive layout.</td></tr>
+<tr><td><span class="tag">:core:ui</span> (<code>implementation</code>)</td><td>Shared Compose components / theming.</td></tr>
+</tbody></table>
+<p><strong>Notable libraries:</strong> <code>material3-adaptive-layout</code> + <code>material3-window-size-class</code> (the Wave TB.A tablet <code>ListDetailPaneScaffold</code>), Koin (<code>koinViewModel()</code> wiring), Compose BOM/Material3, and <code>kotlinx-coroutines</code>. Paparazzi is applied for screenshot baselines (Today / Week / Month / Fast tabs + Day detail).</p>
+<p><strong>Reverse-deps:</strong> only <span class="tag">:app</span> depends on this module — it registers the routes in <code>MolytovnykNavGraph</code> and supplies the Koin bindings (assembler providers, ViewModels). No other feature module consumes it.</p>
+</section>
+<section class="doc-section" id="navigation"><h2>Navigation flow</h2>
+<p>Calendar is <strong>not</strong> a bottom-nav destination — it is entered from Home's upcoming-events card (and the dedicated Upcoming-Events list). The grid route (<code>calendar</code>) is top-level and keeps the bottom nav; the day-detail, search, and admin-schedule routes are <code>@Modal</code> and take the full canvas. From the grid, tapping a day navigates to <code>calendar/day/{date}</code>; the header magnifier opens <code>calendar/search</code>; an admin affordance on the day opens <code>calendar/schedule/{date}</code>. Back is always <code>popBackStack()</code> (search and day-detail land back on the calendar; a successful schedule publish auto-pops to day-detail). On a tablet (≥ 600dp) a day tap in the grid does <em>not</em> navigate — it selects, and the detail renders inline via <code>CalendarDetailPaneRoute</code>.</p>
+<pre><code>Home "Найближчі події" card
+        │  navigate(MolytovnykRoutes.Calendar)
+        ▼
+  ┌─────────────────────────┐
+  │  calendar  (top-level)  │  CalendarScreen — Today/Week/Month/Fast tabs
+  │  bottom nav VISIBLE     │  (≥600dp → ListDetailPaneScaffold + inline detail)
+  └─────────────────────────┘
+        │ tap day            │ tap 🔍 magnifier
+        ▼                    ▼
+  calendar/day/{date}   calendar/search          @Modal
+  @Modal (DayDetail)    (CalendarSearch)          (bottom nav hidden)
+        │  onPray → PrayerOfDayReader     │ tap result/date → calendar/day/{date}
+        │  onEditSchedule (gated)         │ no-results CTA → simpleEventCreate(query)
+        ▼
+  calendar/schedule/{date}   @Modal (CreateSchedule, admin)
+        │  publish → auto popBackStack()
+        ▼
+  back to calendar/day/{date}</code></pre>
+</section>
+
+<div class="chapter-nav">
+  <a class="prev" href="psalter.html"><span class="dir">← Previous</span><span class="ttl">Psalter</span></a>
+  <a class="next" href="community.html"><span class="dir">Next →</span><span class="ttl">Community</span></a>
+</div>
+
+</main>
+
+<footer>
+  <p><b>Molytovnyk — Calendar chapter.</b> Generated against <code>main</code> @ <code>aef96f89</code> (Wave LL). See the <a href="../architecture.html">architecture reference</a> for the system-wide view, or <a href="../index.html">all feature chapters</a>.</p>
+</footer>
+
+</body>
+</html>

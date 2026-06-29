@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Molytovnyk — Project Documentation</title>
+<style>
+  :root{
+    --bg:#faf7f2; --surface:#ffffff; --surface-2:#f4eee3;
+    --ink:#2a2320; --muted:#6b5f57; --faint:#9a8d82;
+    --accent:#7b1e2b; --accent-2:#b08a3e; --accent-soft:#a23847;
+    --border:#e7ddd0; --border-strong:#d8cab6;
+    --code-bg:#2b2622; --code-ink:#f3ead8;
+    --warn-bg:#fdf4e6; --warn-bar:#c98a1e;
+    --note-bg:#f1f5f1; --note-bar:#5d7d5a;
+    --max:1180px; --rail:288px;
+    --mono:"SF Mono",ui-monospace,"Cascadia Code","JetBrains Mono",Consolas,monospace;
+    --serif:"Cormorant Garamond","Iowan Old Style",Georgia,"Times New Roman",serif;
+    --sans:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:var(--sans); font-size:16px; line-height:1.65;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
+
+  /* ---- Masthead ---- */
+  .masthead{
+    background:
+      radial-gradient(120% 140% at 85% -20%, rgba(176,138,62,.22), transparent 55%),
+      linear-gradient(160deg,#3a1118 0%, #5a1622 45%, #7b1e2b 100%);
+    color:#f7ede0; padding:54px 28px 46px;
+    border-bottom:3px solid var(--accent-2);
+  }
+  .masthead-inner{max-width:var(--max); margin:0 auto}
+  .crest{
+    font-family:var(--serif); font-size:13px; letter-spacing:.32em;
+    text-transform:uppercase; color:var(--accent-2); margin:0 0 12px; font-weight:600;
+  }
+  .masthead h1{
+    font-family:var(--serif); font-weight:600; font-size:clamp(38px,6vw,68px);
+    line-height:1.02; margin:0 0 10px; letter-spacing:-.5px;
+  }
+  .masthead .tagline{
+    font-size:clamp(16px,2.2vw,21px); color:#e9d8c2; margin:0 0 22px; max-width:760px;
+  }
+  .meta-row{display:flex; flex-wrap:wrap; gap:10px; margin-top:6px}
+  .meta-pill{
+    display:inline-flex; align-items:center; gap:7px;
+    background:rgba(255,255,255,.10); border:1px solid rgba(247,237,224,.22);
+    padding:6px 13px; border-radius:999px; font-size:13px; color:#f1e4d2;
+    backdrop-filter:blur(2px);
+  }
+  .meta-pill b{color:#fff; font-weight:600}
+
+  /* ---- Layout ---- */
+  .wrap{max-width:var(--max); margin:0 auto; padding:0 28px;
+    display:grid; grid-template-columns:var(--rail) minmax(0,1fr); gap:44px; align-items:start}
+
+  /* ---- TOC rail ---- */
+  nav.toc{position:sticky; top:0; max-height:100vh; overflow-y:auto;
+    padding:34px 0 40px; border-right:1px solid var(--border);}
+  nav.toc h2{
+    font-family:var(--sans); font-size:12px; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--faint); margin:0 0 14px; font-weight:700;
+  }
+  nav.toc ol{list-style:none; margin:0; padding:0; counter-reset:toc}
+  nav.toc li{counter-increment:toc; margin:1px 0}
+  nav.toc a{
+    display:flex; gap:11px; align-items:baseline; text-decoration:none;
+    color:var(--muted); font-size:14px; padding:8px 14px 8px 12px; border-radius:9px;
+    border-left:3px solid transparent; transition:all .14s ease; line-height:1.35;
+  }
+  nav.toc a::before{
+    content:counter(toc); font-family:var(--serif); font-weight:600; font-size:15px;
+    color:var(--accent-2); min-width:16px; text-align:right;
+  }
+  nav.toc a:hover{background:var(--surface-2); color:var(--ink)}
+  nav.toc a.active{
+    background:var(--surface); color:var(--accent); font-weight:600;
+    border-left-color:var(--accent); box-shadow:0 1px 3px rgba(60,20,20,.06);
+  }
+  nav.toc a.active::before{color:var(--accent)}
+  .toc-foot{margin-top:22px; padding:14px 12px 0; border-top:1px solid var(--border);
+    font-size:12px; color:var(--faint); line-height:1.5}
+
+  /* ---- Content ---- */
+  main{padding:34px 0 90px; min-width:0}
+  .lead{
+    font-size:18px; color:var(--muted); border-left:3px solid var(--accent-2);
+    padding:4px 0 4px 20px; margin:0 0 40px; font-style:italic;
+  }
+  .doc-section{
+    background:var(--surface); border:1px solid var(--border); border-radius:16px;
+    padding:34px 38px 38px; margin:0 0 30px; scroll-margin-top:22px;
+    box-shadow:0 1px 2px rgba(60,30,20,.04), 0 10px 30px -22px rgba(60,30,20,.18);
+  }
+  .doc-section > h2:first-child{margin-top:0}
+  h2{
+    font-family:var(--serif); font-weight:600; font-size:31px; letter-spacing:-.3px;
+    color:var(--accent); margin:0 0 20px; padding-bottom:14px;
+    border-bottom:2px solid var(--border); line-height:1.12;
+  }
+  h3{font-family:var(--serif); font-weight:600; font-size:23px; color:var(--ink);
+    margin:34px 0 12px; letter-spacing:-.2px}
+  h4{font-size:16px; font-weight:700; color:var(--accent-soft); margin:22px 0 8px;
+    text-transform:none; letter-spacing:0}
+  p{margin:0 0 14px}
+  ul,ol{margin:0 0 16px; padding-left:24px}
+  li{margin:6px 0}
+  li::marker{color:var(--accent-2)}
+  strong{color:var(--ink); font-weight:650}
+  a{color:var(--accent-soft); text-decoration:none; border-bottom:1px solid rgba(162,56,71,.3)}
+  a:hover{border-bottom-color:var(--accent-soft)}
+
+  /* code */
+  code{
+    font-family:var(--mono); font-size:.86em; background:var(--surface-2);
+    color:#7a3a16; padding:1.5px 6px; border-radius:5px; border:1px solid var(--border);
+    word-break:break-word;
+  }
+  pre{
+    background:var(--code-bg); color:var(--code-ink); padding:18px 20px; border-radius:11px;
+    overflow-x:auto; margin:0 0 18px; border:1px solid #1c1814;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  pre code{background:none; border:none; color:var(--code-ink); padding:0; font-size:13px;
+    line-height:1.6; white-space:pre}
+
+  /* tables */
+  table{width:100%; border-collapse:collapse; margin:0 0 20px; font-size:14.5px;
+    border:1px solid var(--border); border-radius:10px; overflow:hidden}
+  thead th{
+    background:linear-gradient(180deg,#fbf6ee,#f4ebdc); text-align:left;
+    font-size:12.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--accent);
+    padding:11px 15px; border-bottom:2px solid var(--border-strong); font-weight:700;
+  }
+  tbody td{padding:11px 15px; border-bottom:1px solid var(--border); vertical-align:top}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:nth-child(even){background:#fcfaf6}
+
+  /* tags */
+  .tag{
+    display:inline-block; font-family:var(--mono); font-size:12px; font-weight:600;
+    background:#efe6d4; color:#6e4a14; border:1px solid var(--border-strong);
+    padding:1px 8px; border-radius:6px; white-space:nowrap; line-height:1.7;
+  }
+
+  /* callouts */
+  .callout{
+    background:var(--note-bg); border:1px solid #d7e2d6; border-left:4px solid var(--note-bar);
+    padding:14px 18px; border-radius:10px; margin:0 0 18px; font-size:14.5px;
+  }
+  .callout.warn{background:var(--warn-bg); border-color:#eed7ad; border-left-color:var(--warn-bar)}
+  .callout p:last-child,.callout ul:last-child,.callout ol:last-child{margin-bottom:0}
+  .callout::before{
+    content:"NOTE"; display:inline-block; font-size:10.5px; font-weight:800; letter-spacing:.12em;
+    color:var(--note-bar); margin-right:8px; vertical-align:1px;
+  }
+  .callout.warn::before{content:"GOTCHA"; color:#a9710f}
+
+  /* footer */
+  footer{
+    max-width:var(--max); margin:0 auto; padding:30px 28px 60px; color:var(--faint);
+    font-size:13px; border-top:1px solid var(--border);
+  }
+  footer b{color:var(--muted)}
+
+  @media (max-width:880px){
+    .wrap{grid-template-columns:1fr; gap:0}
+    nav.toc{position:static; max-height:none; border-right:none;
+      border-bottom:1px solid var(--border); padding:20px 0}
+    nav.toc ol{columns:2; column-gap:18px}
+    .doc-section{padding:24px 20px 28px}
+    h2{font-size:26px}
+  }
+  @media print{
+    nav.toc,.masthead .meta-row{display:none}
+    .doc-section{break-inside:avoid; box-shadow:none; border-color:#ccc}
+    body{background:#fff}
+  }
+</style>
+</head>
+<body>
+
+<div style="position:sticky;top:0;z-index:30;background:rgba(43,17,24,.96);color:#f1e4d2;padding:11px 22px;border-bottom:2px solid #b08a3e;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;display:flex;gap:16px;align-items:center;backdrop-filter:blur(4px)">
+  <a href="index.html" style="color:#f1e4d2;text-decoration:none;font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:18px;letter-spacing:.3px">Молитовник<span style="color:#b08a3e">·</span>Docs</a>
+  <span style="color:#9a8d82">Architecture &amp; System Reference</span>
+  <span style="flex:1"></span>
+  <a href="index.html" style="color:#f1e4d2;text-decoration:none;opacity:.85">← All docs</a>
+  <a href="index.html#features" style="color:#f1e4d2;text-decoration:none;opacity:.85">Features</a>
+</div>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <p class="crest">Молитовник · Project Documentation</p>
+    <h1>Molytovnyk</h1>
+    <p class="tagline">An offline-first Ukrainian Greek Catholic prayer book for Android — daily Divine Liturgy, the full Psalter, a prayer library, the liturgical calendar, and an AI spiritual advisor, built for children 7+ and newcomers to the Byzantine tradition.</p>
+    <div class="meta-row">
+      <span class="meta-pill">Source of truth · <b>main&nbsp;@&nbsp;aef96f89</b></span>
+      <span class="meta-pill">Latest wave · <b>Wave&nbsp;LL</b></span>
+      <span class="meta-pill">Stack · <b>Kotlin&nbsp;2.0.21 · Compose · Room</b></span>
+      <span class="meta-pill">Status · <b>Pre-release pilot</b></span>
+      <span class="meta-pill">Generated · <b>2026-06-28</b></span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Table of contents">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#overview">Overview &amp; Purpose</a></li>
+      <li><a href="#architecture">Architecture &amp; Modules</a></li>
+      <li><a href="#engine">The Liturgical Engine</a></li>
+      <li><a href="#data">Data &amp; Content Layer</a></li>
+      <li><a href="#features">Feature Modules</a></li>
+      <li><a href="#designsystem">Design System</a></li>
+      <li><a href="#cloud">Firebase &amp; Cloud</a></li>
+      <li><a href="#build">Build, Test &amp; Process</a></li>
+    </ol>
+    <div class="toc-foot">
+      Generated by fanning out one research subagent per section against the live <code>main</code> tree, then assembling the verified fragments into this single document.
+    </div>
+  </nav>
+
+  <main>
+    <p class="lead">This document is a step-by-step engineering tour of the Molytovnyk codebase — from what the app is and how its modules fit together, through the liturgical engine and content pipeline, to the design system, cloud layer, and the development process that ships it.</p>
+
+<!-- ===================== SECTION 1 ===================== -->
+<section id="overview" class="doc-section">
+<h2>1. Overview &amp; Purpose</h2>
+
+<p><strong>Molytovnyk</strong> (Молитовник) is an offline-first Android prayer book for the Ukrainian Greek Catholic Church. It gives parishioners the daily Divine Liturgy with its full ordo, the complete Psalter, a personal and universal prayer library, the liturgical calendar, and an AI-powered spiritual advisor — all in Ukrainian. It is built deliberately for <strong>children aged 7+</strong> and for <strong>newcomers to the Byzantine / UGCC tradition</strong>, with a <em>Kids Mode</em> that simplifies the UI and softens the visual style. Core content ships bundled inside the APK as JSON, so no network connection or account is required to pray.</p>
+
+<h3>Current status</h3>
+<p>Pre-release, in active development toward a first pilot install with the <strong>Mukachevo Eparchy</strong>. Key facts about where the project stands:</p>
+<ul>
+<li><strong>V2 redesign is now the default and only UI.</strong> The original V1 entry (<code>MainActivity</code> and the legacy <code>:feature:liturgy</code>/<code>:psalter</code>/<code>:prayers</code> modules) was deleted at the Phase 8 cutover (Wave CUT.1); <code>MainActivityV2</code> is the sole launcher.</li>
+<li><strong>Pilot hardening is largely complete.</strong> Release-candidate hardening, Play Store asset prep, single-parish finalization, and onboarding/nav cleanup have all shipped. Remaining pilot gates are external/owner-paced (production keystore custody, Play Console upload, clergy text sign-off).</li>
+<li><strong>iOS KMP shell is in progress.</strong> <code>:core:domain</code> is multiplatform (JVM + iOS), and a parity-first iOS track (SwiftUI over shared Kotlin, with SKIE Kotlin↔Swift interop) is being built out screen by screen.</li>
+</ul>
+
+<div class="callout">
+<strong>The liturgical engine is the most complex part of the app:</strong> <code>CalendarService</code> computes Pascha (Butcher algorithm) and resolves tone / feast / movable cycle for any date, and <code>LiturgyAssembler</code> emits a <em>deterministic</em>, ordered list of display blocks from a date + rules + base template. All liturgical content is bundled JSON under <code>app/src/main/res/raw/</code>, loaded into Room at first launch — there is no cloud content backend.
+</div>
+
+<h3>Key features</h3>
+<ul>
+<li><strong>Daily Divine Liturgy</strong> — a deterministically assembled ordo combining fixed text with the day's variable chants, scripture readings, and feast-day propers; with an in-place ♪ notation-sheet toggle for the core sung parts.</li>
+<li><strong>Full Psalter</strong> — all 20 kathismas, rendered verse-per-line with per-Slava navigation in a dedicated kathisma reader.</li>
+<li><strong>Prayer library</strong> — personal and universal prayers, plus a prayers hub (rosary / Вервиця, akathist, Canon of the Day).</li>
+<li><strong>Liturgical calendar</strong> — covers the movable cycles (Triodion, Pentecostarion, Octoechos) and fixed feasts, with dual-calendar (Gregorian / Julian) feast resolution.</li>
+<li><strong>Kids Mode</strong> — a child-friendly experience with the <strong>Rose / Meadow / Sky</strong> palettes and a simplified reading surface.</li>
+<li><strong>AI Spiritual Advisor</strong> (Духовний помічник) — a streaming chat advisor grounded on keyword-retrieved knowledge chunks, behind a default-off flag with an honest offline / no-key fallback.</li>
+<li><strong>Offline-first</strong> — the full Liturgy, Psalter, prayers, and calendar work with no network and no sign-in.</li>
+</ul>
+
+<h3>Tech stack at a glance</h3>
+<table>
+<thead>
+<tr><th>Area</th><th>Choice</th><th>Version</th></tr>
+</thead>
+<tbody>
+<tr><td>Language</td><td><span class="tag">Kotlin</span></td><td>2.0.21 (Java 17 toolchain)</td></tr>
+<tr><td>UI</td><td><span class="tag">Jetpack Compose</span> + <span class="tag">Material3</span></td><td>Compose BOM 2024.04.00</td></tr>
+<tr><td>Persistence</td><td><span class="tag">Room</span> (via <span class="tag">KSP</span>)</td><td>2.6.1 · KSP 2.0.21-1.0.27</td></tr>
+<tr><td>DI</td><td><span class="tag">Koin</span></td><td>3.5.6</td></tr>
+<tr><td>Build</td><td><span class="tag">AGP</span> · <span class="tag">Gradle</span></td><td>AGP 8.11.0 · Gradle 8.13</td></tr>
+<tr><td>SDK levels</td><td>minSdk / targetSdk / compileSdk</td><td>26 / 34 / 35</td></tr>
+<tr><td>Shared core</td><td><span class="tag">KMP</span> <code>:core:domain</code></td><td>JVM + iOS targets (SKIE)</td></tr>
+<tr><td>Screenshot tests</td><td><span class="tag">Paparazzi</span></td><td>Compose preview → PNG</td></tr>
+<tr><td>AI advisor</td><td><span class="tag">Anthropic SDK</span></td><td><code>claude-haiku-4-5</code> streaming</td></tr>
+</tbody>
+</table>
+
+<div class="callout warn">
+The README's module map is slightly behind current code — it still lists the legacy <code>:feature:liturgy</code> / <code>:feature:psalter</code> / <code>:feature:prayers</code> modules, which were removed at the V1 excision (Wave CUT.1). The live module set is the <code>:feature:*-v2</code> family plus <code>:feature:community</code>; trust <a href="#">CLAUDE.md</a> and the source tree over the README layout section.
+</div>
+</section>
+
+<!-- ===================== SECTION 2 ===================== -->
+<section id="architecture" class="doc-section">
+<h2>2. Architecture &amp; Module Structure</h2>
+
+<p>Molytovnyk is a multi-module Gradle project. The authoritative module list is <a href="#"><code>settings.gradle.kts</code></a> — when the README's "Project layout" disagrees, <strong>settings.gradle.kts wins</strong> (the README is slightly stale on the cutover noted below). The codebase splits cleanly into three tiers: a shared <span class="tag">:core:*</span> foundation, a set of V2 <span class="tag">:feature:*</span> screens that consume it, and the <span class="tag">:app</span> entry point that wires everything together. Two pure-JVM <span class="tag">:build-logic:*</span> modules provide compile-time tooling and never ship in the APK.</p>
+
+<h3>2.1 Module map</h3>
+
+<table>
+<thead>
+<tr><th>Module</th><th>Responsibility</th></tr>
+</thead>
+<tbody>
+<tr><td><span class="tag">:app</span></td><td>Android entry point — <code>MainActivityV2</code>, Koin DI wiring (<code>UstavApplication</code>), the <code>MolytovnykNavGraph</code>, and the streaming chat client / ViewModel for the Spiritual Advisor.</td></tr>
+<tr><td><span class="tag">:core:domain</span></td><td>KMP module (JVM + iOS targets). Pure Kotlin business logic — no Android dependencies, multiplatform-ready for the future iOS shell.</td></tr>
+<tr><td><span class="tag">:core:ui</span></td><td>Shared Compose components, Material3 theming, <code>KidsThemeColor</code>.</td></tr>
+<tr><td><span class="tag">:core:database</span></td><td>The liturgical engine — Room DB, DAOs, <code>LiturgyAssembler</code>, <code>CalendarService</code>, and the bundled-JSON content readers.</td></tr>
+<tr><td><span class="tag">:core:designsystem</span></td><td>V2 design tokens — palette, typography, dimens, shapes, animations, and the kids palettes. Single source of truth for visual tokens.</td></tr>
+<tr><td><span class="tag">:core:data-cloud</span></td><td>Firebase layer — Auth / App Check gateways, Firestore cloud sources, FCM topics + notification specs. Dormant-guarded so the app works fully offline.</td></tr>
+<tr><td><span class="tag">:feature:home-v2</span></td><td>V2 home redesign — the Дім tab, plus More / Settings / Reminders / parish picker routes.</td></tr>
+<tr><td><span class="tag">:feature:liturgy-v2</span></td><td>V2 liturgy redesign — Divine Liturgy reader with the in-place ♪ notation-sheet toggle.</td></tr>
+<tr><td><span class="tag">:feature:psalter-v2</span></td><td>V2 psalter — verse-per-line kathisma reader.</td></tr>
+<tr><td><span class="tag">:feature:kids-v2</span></td><td>V2 Kids Mode — palette, picker, Kids Home.</td></tr>
+<tr><td><span class="tag">:feature:community</span></td><td>Community surface — V2 community home, circles, events, and admin schedule tools.</td></tr>
+<tr><td><span class="tag">:feature:rosary-v2</span></td><td>V2 prayers hub — rosary (Вервиця), akathist, Canon of the Day, prayers list.</td></tr>
+<tr><td><span class="tag">:feature:calendar-v2</span></td><td>V2 liturgical calendar — month grid, day sheet, search.</td></tr>
+<tr><td><span class="tag">:feature:chat-v2</span></td><td>V2 Spiritual Advisor (Духовний помічник) — stateless chat surface with honest latency states. The ViewModel + streaming client live in <span class="tag">:app</span>; this module does <em>not</em> depend on <span class="tag">:app</span>.</td></tr>
+<tr><td><span class="tag">:build-logic:detekt-rules</span></td><td>Detekt custom token-leak rules (pure JVM). Consumed only by the root <code>detekt { }</code> block.</td></tr>
+<tr><td><span class="tag">:build-logic:modal-routes-ksp</span></td><td>KSP processor (pure JVM). Generates <code>MODAL_ROUTES</code> from <code>@Modal</code>-annotated route constants. Consumed only by <span class="tag">:app</span>.</td></tr>
+</tbody>
+</table>
+
+<div class="callout warn">
+<p><strong>V1 is gone.</strong> The legacy <span class="tag">:feature:liturgy</span>, <span class="tag">:feature:psalter</span>, and <span class="tag">:feature:prayers</span> modules and the V1 <code>MainActivity</code> entry point were <strong>removed at the Phase 8 cutover (Wave CUT.1)</strong>. <code>MainActivityV2</code> is now the sole launcher in both debug and release. A re-entry guard test fails the build if V1 imports or modules reappear. The README's "Project layout" section still lists the old layout — trust <code>settings.gradle.kts</code> over it.</p>
+</div>
+
+<h3>2.2 Dependency boundaries</h3>
+
+<p>Dependencies flow strictly <strong>downward</strong>: feature modules depend on core, and core modules depend on domain — never the reverse. The shared foundation is the load-bearing trio:</p>
+
+<ul>
+<li><span class="tag">:core:domain</span> — pure Kotlin (KMP). Knows nothing about Android, Compose, or Room. Highest reuse, zero platform coupling.</li>
+<li><span class="tag">:core:database</span> — the Room engine + liturgical assembler. Consumes <span class="tag">:core:domain</span>; consumed by every <span class="tag">:feature:*-v2</span> module that renders content.</li>
+<li><span class="tag">:core:designsystem</span> — visual tokens. Consumed by every Compose-bearing feature so colors/type/dimens stay 1:1 with the design spec.</li>
+</ul>
+
+<p>A key asymmetry: <span class="tag">:core:data-cloud</span> <strong>cannot import <span class="tag">:app</span></strong> the way <span class="tag">:app</span> imports it. This drives concrete invariants — e.g. notification id allocation. The canonical <code>NotificationIds</code> registry lives in <span class="tag">:app</span>, but because <span class="tag">:core:data-cloud</span> can't reach up to it, the FCM <code>EventNotificationSpec.atStart()</code> path <em>inlines</em> the same id-range mapping. If one changes, both must change — a documented cross-module mirror, not an accidental duplication.</p>
+
+<pre><code>      ┌─────────────────────────────────────────────┐
+      │  :app  (MainActivityV2, Koin, NavGraph)      │
+      │        ksp(:build-logic:modal-routes-ksp)    │
+      └───────────────┬─────────────────────────────┘
+                      │  depends on
+   ┌──────────────────┼──────────────────────────────┐
+   ▼                  ▼                               ▼
+:feature:home-v2  :feature:liturgy-v2  …  :feature:chat-v2   (V2 screens)
+   │                  │                               │
+   └──────────────────┴───────────────┬───────────────┘
+                                       │  depends on
+        ┌──────────────┬───────────────┼───────────────┐
+        ▼              ▼               ▼                ▼
+ :core:designsystem  :core:ui   :core:database   :core:data-cloud
+   (tokens)        (Compose)    (Room engine)     (Firebase)
+                                       │
+                                       ▼  depends on
+                             :core:domain  (pure Kotlin, KMP: JVM + iOS)
+
+  (:build-logic:* are compile-time only — never in the APK)</code></pre>
+
+<h3>2.3 Dependency injection</h3>
+
+<p>DI is <strong>Koin 3.5.6</strong>, wired in <code>UstavApplication</code>. Repositories, the <code>AppDatabase</code>, and the <code>LiturgyContentReader</code> are registered as <strong>single instances</strong> (one per process); ViewModels are injected <strong>per-screen</strong>. On startup <code>UstavApplication</code> also loads the bundled <code>res/raw</code> JSON content into Room via the readers, so the liturgical engine has its data before the first screen renders.</p>
+
+<h3>2.4 Navigation</h3>
+
+<p>The app is <strong>single-Activity</strong>: <code>MainActivityV2</code> hosts a Compose navigation graph defined in <code>MolytovnykNavGraph</code> (route constants in the <code>MolytovnykRoutes</code> object). There are <strong>five bottom-nav tabs</strong>:</p>
+
+<ul>
+<li><strong>Дім</strong> (home)</li>
+<li><strong>Літургія</strong> (liturgy)</li>
+<li><strong>Молитви</strong> (prayers)</li>
+<li><strong>Спільнота</strong> (community)</li>
+<li><strong>Більше</strong> (more)</li>
+</ul>
+
+<p>Psalter, Settings/profile, and parish tools are <strong>top-level (non-modal) destinations reached via the More tab</strong> — they keep the bottom nav visible (Psalter is also linked from the Prayers list). They are not separate tabs.</p>
+
+<div class="callout">
+<p><strong>Modal routes hide the bottom nav.</strong> A route that should get full-screen treatment (prayer session, completion screens, focused forms, the Spiritual Advisor canvas) annotates its <code>MolytovnykRoutes</code> constant with <code>@Modal</code>. The <span class="tag">:build-logic:modal-routes-ksp</span> processor discovers every <code>@Modal const val</code>, reads its literal route string, and emits a generated <code>MODAL_ROUTES: Set&lt;String&gt;</code> (package <code>com.njakawaii.molutovnuk.v2.generated</code>). <code>MainActivityV2</code> imports that set and suppresses the bottom nav for any current route it contains. This replaced the old two-edit footgun (register the composable <em>and</em> hand-maintain a parallel Set) — annotate the constant once and the nav-bar suppression follows automatically; a <code>NavGraphSnapshotTest</code> asserts the generated output matches the graph.</p>
+</div>
+</section>
+
+<!-- ===================== SECTION 3 ===================== -->
+<section id="engine" class="doc-section">
+  <h2>3. The Liturgical Engine</h2>
+
+  <p>
+    The heart of Molytovnyk is a pure-Kotlin liturgical engine living in <span class="tag">:core:domain</span>
+    (a KMP module with JVM + iOS targets, so the same Ordo math runs on Android and on the future iOS shell).
+    Given a civil date it computes the correct Divine Liturgy for that day — the movable cycle, the tone, the
+    commemorated feasts, the variable chants — and assembles a deterministic, ordered list of display blocks
+    ready for rendering. There is <strong>no cloud backend</strong>: every byte of liturgical content ships
+    bundled in the APK and the engine produces each day's service on demand.
+  </p>
+
+  <h3>3.1 CalendarService — what day is it, liturgically?</h3>
+  <p>
+    <code>CalendarService</code>
+    (<code>core/domain/src/commonMain/kotlin/.../data/logic/CalendarService.kt</code>)
+    answers the question every other layer depends on: <em>where are we in the liturgical year?</em>
+  </p>
+  <ul>
+    <li>
+      <strong>Gregorian Pascha (Butcher's algorithm).</strong> <code>getOrthodoxPaschaDate(year)</code> computes
+      Easter via the Anonymous Gregorian algorithm. The UGCC new-calendar uses the Gregorian Paschalion, so this
+      is the anchor for the entire movable cycle (e.g. 2026 → 5 April, 2027 → 28 March).
+    </li>
+    <li>
+      <strong>Movable-cycle detection.</strong> The distance from Pascha classifies the day into one of the
+      movable periods — <em>Triodion</em> (the pre-Paschal weeks, counted backwards), <em>Pentecostarion</em>
+      (Pascha → Pentecost, counted forwards), and the post-Pentecost <em>Octoechos</em> ("по Зісланні") tone cycle.
+      <code>computeMovableSundayCommemoration</code> maps the exact week offset to named Sundays
+      (Publican &amp; Pharisee at &minus;10, Thomas Sunday at +1, and so on).
+    </li>
+    <li>
+      <strong>Tone &amp; feast lookup.</strong> <code>getLiturgicalDayContext(date, rules, mode, ustavFeastClassHint)</code>
+      resolves the day's tone (glas), afterfeast window, antiphon type, and matching feasts from the annual
+      <em>Ustav</em> rulebook. The hand-tagged Ustav <code>feast_class</code> is authoritative: a hint can only
+      <em>promote</em> the computed rank, never demote it, so great feasts can't be silently downgraded by
+      best-effort engine math.
+    </li>
+  </ul>
+
+  <h3>3.2 LiturgyAssembler — building the Ordo</h3>
+  <p>
+    <code>assembleLiturgy(...)</code>
+    (<code>core/domain/.../data/logic/LiturgyAssembler.kt</code>) takes the day's <strong>rules</strong> + a
+    <strong>base template</strong> (the fixed Liturgy skeleton) + a <strong>rich-content provider</strong> for the
+    variable slots, and walks the template unit-by-unit to emit an ordered
+    <code>List&lt;LiturgyDisplayBlock&gt;</code>:
+  </p>
+  <ul>
+    <li>
+      <strong>Fixed vs. variable substitution.</strong> Each base unit is <code>FIXED</code> or <code>VARIABLE</code>.
+      Variable units (<code>ref_variable</code>) pull their text from the rich-content provider for that day
+      (troparia, kondaki, antiphons, prokimena); feast-specific overrides replace the corresponding slots when a
+      <code>FeastServiceDefinition</code> is present (e.g. the festal entrance hymn or zadostoynyk).
+    </li>
+    <li>
+      <strong>Speaker roles.</strong> Every emitted block carries a <code>speaker</code> (Диякон / Священник /
+      Хор / Люди) and a coarse engine <code>type</code> — the raw material the rendering mapper (§3.4) classifies.
+    </li>
+    <li>
+      <strong>Deterministic &amp; regression-tested.</strong> The output is a pure function of its inputs — same
+      date + rules → byte-identical Ordo. This is locked down by <em>"Golden-Ordo"</em> snapshot tests
+      (<code>GoldenOrdoParityTest</code> in <code>:core:domain</code> <code>commonTest</code>) plus
+      <code>LiturgyAssemblerTest</code> and per-feast Ordo fixtures. Because the goldens live in a different module
+      than the JSON they cover, any liturgy-content change must run the cross-module <code>:core:domain:jvmTest</code>
+      sweep — the obvious nearest test passing is not enough.
+    </li>
+  </ul>
+  <div class="callout">
+    <strong>Completeness, not just exclusion.</strong> The template's per-unit <code>targetLiturgy</code> filter is
+    an <em>exclusion</em> mechanism — it can drop units that don't apply to a rite, but it cannot guarantee a rite
+    has any positive content. A <code>LiturgyType</code> with no tagged template (e.g. Presanctified Gifts) would
+    otherwise render the full untagged Chrysostom skeleton. The shared generator short-circuits such types to an
+    honest notice until clergy-verified content lands.
+  </div>
+
+  <h3>3.3 Dual-calendar resolution (Wave OT.8)</h3>
+  <p>
+    Feast resolution is parameterised by a <code>CalendarMode</code>
+    (<code>com.njakawaii.molutovnuk.domain.logic.CalendarMode</code>):
+  </p>
+  <pre><code>enum class CalendarMode { GREGORIAN, JULIAN }</code></pre>
+  <p>
+    <code>GREGORIAN</code> is the default everywhere — it is the UGCC new-calendar reckoning. <code>JULIAN</code>
+    serves old-calendar parishes. The matcher selects <strong>exactly one</strong> key field per mode, never
+    OR-ing both: a pre-OT.8 bug OR-ed both fields against one civil date and co-resolved two feasts thirteen days
+    apart on eleven dates of the year.
+  </p>
+  <div class="callout warn">
+    <strong>Inverted-key gotcha — read before "fixing" this.</strong> The <code>LiturgicalRule</code> field
+    <em>names</em> are inverted relative to their <em>contents</em>: <code>date_key_julian</code> actually holds the
+    <strong>new</strong>-calendar civil date and <code>date_key_gregorian</code> holds the <strong>old</strong>-calendar
+    one. Therefore the matcher does the counter-intuitive thing on purpose:
+    <ul>
+      <li><code>GREGORIAN</code> (new-cal default) matches <code>date_key_julian</code></li>
+      <li><code>JULIAN</code> (old-cal) matches <code>date_key_gregorian</code></li>
+    </ul>
+    This is correct. Do not "obviously" swap the two fields back.
+  </div>
+  <p>
+    <code>CalendarService.JulianCalendarFlag</code> (mirrored from <code>BuildConfig.ENABLE_JULIAN_TOGGLE</code>) is a
+    <strong>warm-path mirror only</strong>, read solely by <code>getOrthodoxPaschaDate</code> for the deferred Julian
+    Paschalion offset — it is <strong>not</strong> read by feast resolution. Fixed-date feast resolution is shipped;
+    the Julian Paschalion offset for <em>movable</em> feasts is still deferred
+    (<code>TODO(F.3): apply Julian Paschalion offset</code> guards the empty branch today).
+  </p>
+
+  <h3>3.4 The five-role rendering contract</h3>
+  <p>
+    Every assembled block is routed at the rendering boundary into one of <strong>five</strong> roles by a pure
+    mapper, <code>LiturgyBlockTypeMapper.mapType(block)</code>. The roles are the canonical enum
+    <code>LiturgyBlockType</code> — lifted to <span class="tag">:core:domain</span> commonMain so the
+    iOS engine routes blocks identically:
+  </p>
+  <pre><code>enum class LiturgyBlockType { Rubric, Said, Sung, PeopleSung, Response }</code></pre>
+  <table>
+    <thead>
+      <tr><th>Role</th><th>Meaning</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Rubric</strong></td>
+        <td>Stage direction / instruction line (e.g. «Диякон», «(тихо)»). Nobody sings it; rendered uppercase, muted.</td>
+      </tr>
+      <tr>
+        <td><strong>Said</strong></td>
+        <td>Clergy spoken text — the default narrative body, rendered quieter (opacity 0.72).</td>
+      </tr>
+      <tr>
+        <td><strong>Sung</strong></td>
+        <td>Priest / deacon <em>cantillated</em> exclamations &amp; blessings — rare. Matched on a
+            «(співає)» / «(поспівно)» hint in the speaker label.</td>
+      </tr>
+      <tr>
+        <td><strong>PeopleSung</strong></td>
+        <td>People-sung long-form: antiphon refrains, tropari, kondak, megalynarion, irmoses, stichera. The default
+            for anything tagged Хор / Choir / Люди / People that isn't a canonical short response.</td>
+      </tr>
+      <tr>
+        <td><strong>Response</strong></td>
+        <td>One of the four canonical short cries —
+            <em>Амінь · Господи, помилуй · Подай, Господи · Тебі, Господи</em> — case-insensitive,
+            trailing punctuation tolerated. The most prominent role.</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="callout warn">
+    <strong>Accent gotcha — the "mapper vocabulary drift" bug.</strong> The bundled JSON ships chant
+    text fully accented, with a combining acute (U+0301) on every stressed vowel — «Амі́нь.»,
+    «Го́споди, поми́луй.». The <code>CANONICAL_RESPONSE_CRIES</code> set, however, is stored
+    <em>unaccented</em>. Before the fix, the lookup was accent-blind in the wrong direction, so every short cry
+    routed to <code>PeopleSung</code> instead of <code>Response</code> — roughly 65 misclassifications per assembled
+    Liturgy. The mapper's own unit tests passed because their fixtures were <em>also</em> unaccented: the test
+    vocabulary had drifted from production vocabulary. The fix normalises input through a <code>stripAccents</code>
+    (U+0301-removal) step <em>before</em> the set lookup, and the tests now include accented cases lifted verbatim
+    from the bundled JSON so the drift cannot recur.
+  </div>
+
+  <h3>3.5 Data flow into the engine</h3>
+  <p>
+    All liturgical content is bundled as JSON in <code>app/src/main/res/raw/</code> — the Divine Liturgy structure
+    (<code>gods_liturgy_fixed.json</code>, antiphons, beginnings), the variable chants
+    (<code>troparia_kontakia.json</code>, <code>prokeimena_alleluia.json</code>, <code>kinonika.json</code>), the
+    annual rulebook (<code>ustav_2025_2026.json</code>), the readings (<code>epistles.json</code>,
+    <code>gospels.json</code>), and the psalter. The pipeline is:
+  </p>
+  <ol>
+    <li>On app start, <code>LiturgyContentReader</code> loads the <code>res/raw</code> JSON into the Room database.</li>
+    <li><code>CalendarService</code> resolves the day's liturgical context (Pascha, cycle, tone, feasts, mode).</li>
+    <li><code>LiturgyAssembler</code> consumes that context + the base template + the rich-content provider to emit
+        the ordered <code>List&lt;LiturgyDisplayBlock&gt;</code>.</li>
+    <li>The five-role mapper classifies each block, and the V2 reader renders it.</li>
+  </ol>
+  <p>
+    The whole chain is offline-first and deterministic — there is no network call anywhere in producing a day's
+    Ordo, which is exactly what makes the Golden-Ordo snapshot tests possible.
+  </p>
+</section>
+
+<!-- ===================== SECTION 4 ===================== -->
+<section id="data" class="doc-section">
+<h2>4. Data &amp; Content Layer</h2>
+
+<p>Molytovnyk is <strong>offline-first</strong>. Every piece of liturgical content — the Divine Liturgy structure, the annual rulebook, all readings, chants, psalter, and the chat knowledge base — ships <em>bundled as JSON</em> inside <code>app/src/main/res/raw</code>. There is no cloud backend for liturgical content; Firebase is used only for the optional Community / parish layer (see §7). On app start, <code>UstavApplication</code> reads these files through <code>LiturgyContentReader</code> (a tolerant <code>Json { ignoreUnknownKeys = true }</code> reader) and hydrates them into Room. From then on, <code>CalendarService</code> + <code>LiturgyAssembler</code> produce each day's Ordo on demand from the local DB — no network required.</p>
+
+<h3>4.1 Content-as-JSON model</h3>
+
+<p>The <code>res/raw</code> directory currently holds <strong>45 JSON files</strong>. The table below lists the load-bearing ones; many additional <code>feast_fixed_*</code> / <code>feast_movable_*</code> files carry per-feast templates and <code>parishes_seed.json</code> / <code>patron_saints_seed.json</code> seed the Community layer.</p>
+
+<table>
+<thead>
+<tr><th>File</th><th>Holds</th></tr>
+</thead>
+<tbody>
+<tr><td><code>gods_liturgy_fixed.json</code></td><td>Fixed (ordinary) skeleton of the Divine Liturgy — the static spoken/sung text that frames every celebration.</td></tr>
+<tr><td><code>liturgy_antiphons.json</code>, <code>after_antiphons.json</code></td><td>Antiphon refrains and the post-antiphon transitions.</td></tr>
+<tr><td><code>ustav_2025_2026.json</code>, <code>liturgical_rules.json</code>, <code>dynamic_rules.json</code></td><td>The annual liturgical rulebook (Устав) + the rule tables that drive variable substitution and feast resolution.</td></tr>
+<tr><td><code>epistles.json</code> (~235 readings)</td><td>Epistle pericopes — Khomenko Ukrainian translation.</td></tr>
+<tr><td><code>gospels.json</code> (~228 readings)</td><td>Gospel pericopes — Khomenko Ukrainian translation.</td></tr>
+<tr><td><code>troparia_kontakia.json</code>, <code>prokeimena_alleluia.json</code>, <code>kinonika.json</code></td><td>Variable chants — tropar/kondak, prokimen/alleluia, and kinonikon (communion verse) keyed by feast/tone.</td></tr>
+<tr><td><code>psalter.json</code>, <code>psalter_khomenko.json</code></td><td>The Psalter — 20 Kathismas (Khomenko register is the V2-bundled text).</td></tr>
+<tr><td><code>liturgy_chants.json</code></td><td>Notation-sheet (♪) score data for the core-5 sung parts (Wave C.5).</td></tr>
+<tr><td><code>canon_dnya.json</code>, <code>akathist_theotokos.json</code></td><td>Canon of the Day (7-weekday) and the Akathist to the Theotokos.</td></tr>
+<tr><td><code>knowledge_base.json</code> (~2.8 MB), <code>molutovnyk_parsed.json</code> (~2.1 MB), <code>spiritual_counseling.json</code></td><td>RAG / Spiritual-Advisor corpus (loaded in memory, not the DB — see §4.3).</td></tr>
+</tbody>
+</table>
+
+<h3>4.2 Room database</h3>
+
+<p>The local store is <code>AppDatabase</code>, currently at <strong>schema version 49</strong> (declared in <code>core/database/src/main/java/.../data/db/AppDatabase.kt</code>). Code generation uses <strong>KSP</strong> (<code>v2.0.21-1.0.27</code>), not kapt.</p>
+
+<div class="callout warn">
+<strong>Version note:</strong> the top-level <code>CLAUDE.md</code> still describes the DB as "v46" in a couple of prose sections — the source of truth is the <code>version = 49</code> annotation on <code>AppDatabase</code>, confirmed by the per-module <code>core/database/CLAUDE.md</code>. Treat the source annotation as canonical when they disagree.
+</div>
+
+<p>The database declares <strong>~29 entities</strong>. The liturgical/content core includes <code>DailyInfo</code>, <code>Feast</code>, <code>DailyFeast</code>, <code>ServiceText</code>, <code>ServiceTemplatePart</code>, <code>PersonalPrayer</code>, <code>PsalmEntity</code>, <code>KathismaPrayerEntity</code>, and <code>UstavDayRuleEntity</code>, plus the readings/chants tables (<code>ReadingEntity</code>, <code>TroparionKontakionEntity</code>, <code>ProkeimenonAlleluiaEntity</code>, <code>KinonikonEntity</code>) and the Canon-of-the-Day pair (<code>CanonDayEntity</code> / <code>CanonDayItemEntity</code>). Engagement and parish tables — <code>PrayerStreakEntity</code>, <code>StreakStateEntity</code>, <code>IntentionEntity</code>, <code>KathismaCompletionEntity</code>, the Rosary tables, <code>PersonalEventEntity</code>, <code>ParishCacheEntity</code>, <code>NewsItemEntity</code>, and the three Community tables — round out the set.</p>
+
+<p>Migrations live in <code>core/database/src/main/java/.../data/db/v2/Migrations.kt</code>, following the <code>MIGRATION_N_NPLUS1</code> object pattern. Recent bumps illustrate the two shapes used:</p>
+<ul>
+<li><strong>Additive</strong> — e.g. <code>MIGRATION_48_49</code> added nullable <code>textUa</code> / <code>versesUa</code> columns to <code>prokeimena_alleluia</code> for the Wave LL liturgy-language track; existing rows untouched, back-filled on the next content re-import.</li>
+<li><strong>Data-wipe re-hydrate</strong> — schema is unchanged but a content table is cleared so the next launch re-imports the bundled JSON (e.g. <code>MIGRATION_36_37</code> re-hydrating the psalter, <code>MIGRATION_43_44</code> re-loading the OT chant tables).</li>
+</ul>
+<p>Schema bumps are scaffolded with the <code>/add-room-migration</code> skill, and the <code>check-room-migration</code> hook warns when an <code>@Entity</code> changes without a matching migration. During V2 development the DB also falls back to <code>destructiveMigration()</code> — migrations are best-effort until the schema stabilizes.</p>
+
+<h3>4.3 RAG / Spiritual-Advisor knowledge base (experimental)</h3>
+
+<p>The chat / Q&amp;A corpus is the one piece of content that does <strong>not</strong> live in Room. <code>KnowledgeBaseRepository</code> loads <code>knowledge_base.json</code> + <code>spiritual_counseling.json</code> from <code>res/raw</code> into an <strong>in-memory</strong> <code>List&lt;KnowledgeChunkEntity&gt;</code>. <code>RagUseCase</code> then does <strong>keyword-only</strong> scoring over each chunk's title / tags / text and returns the top-3 (<code>.take(3)</code>) chunks for a query — no vectors, no DB round-trip.</p>
+
+<div class="callout warn">
+<strong>Vector search is deferred.</strong> MediaPipe Text Embedder + the cosine-similarity path were removed because <code>libmediapipe_tasks_text_jni.so</code> failed Android 16's 16 KB page-size alignment check and triggered a system warning dialog on every launch (pilot-blocker, issue #463). The <code>embedding</code> field, <code>TextEmbedderHelper</code>, and <code>vectorSearch()</code> are all gone; the keyword path is what ships. Re-introducing semantic search means bumping to a 16 KB-aligned MediaPipe build and reinstating those pieces — a quality lift, not a correctness requirement.
+</div>
+
+<p>As of Wave RR.5 the chat surface is a real V2 feature (<code>:feature:chat-v2</code>): a streaming Anthropic client in <code>:app</code> (<code>StreamingChatClient</code>, model <code>claude-haiku-4-5</code>) grounds its answer on the keyword-retrieved chunks. It is gated behind the <strong>default-OFF</strong> <code>spiritualAdvisorEnabled</code> flag, and degrades honestly: with no API key or no network it falls back to a keyword-only <code>OfflineFallback</code> response rather than failing silently.</p>
+
+<h3>4.4 User preferences</h3>
+
+<p>User-level settings live in <code>UserPreferencesRepository</code>, backed by Jetpack <strong>DataStore</strong> (not Room). It persists:</p>
+<ul>
+<li><strong>Dark theme</strong> — light/dark toggle.</li>
+<li><strong>Kids mode</strong> — the simplified, child-facing experience.</li>
+<li><strong>Text scale</strong> — accessibility text-size knob (drives <code>LocalTextScale</code>, with damped image scaling).</li>
+<li><strong>Kids theme color</strong> — <code>KidsThemeColor</code> ∈ <span class="tag">PINK</span> <span class="tag">BLUE</span> <span class="tag">GREEN</span> <span class="tag">ORANGE</span> <span class="tag">PURPLE</span>.</li>
+<li><strong>Calendar mode</strong> — Gregorian (new-calendar, default) vs. Julian, feeding the dual-calendar feast resolution in <code>CalendarService</code>.</li>
+</ul>
+</section>
+
+<!-- ===================== SECTION 5 ===================== -->
+<section id="features" class="doc-section">
+  <h2>5. Feature Modules (V2 Surfaces)</h2>
+
+  <p>Every user-facing surface ships as its own <span class="tag">:feature:*-v2</span> Gradle module, each
+  consuming the shared <span class="tag">:core:designsystem</span> tokens and the <span class="tag">:core:domain</span> /
+  <span class="tag">:core:database</span> liturgical engine. All wiring lands in <code>MainActivityV2</code> via the
+  Compose <code>MolytovnykNavGraph</code>. Below is one subsection per module, naming the real screens and
+  ViewModels in the current source tree.</p>
+
+  <h3>Home — <span class="tag">:feature:home-v2</span></h3>
+  <p>The landing tab. Renders a time-of-day greeting, the daily card (feast / readings), the prayer-task list
+  with streak credit, an upcoming-events strip, and the permission / nudge banners stacked above the feast
+  stripe. It also owns the <strong>More</strong> tab, onboarding, settings, and reminders, so it is by far the
+  largest feature module.</p>
+  <ul>
+    <li><strong>Screens:</strong> <code>HomeScreen</code> (built from <code>sections/</code> composables —
+      <code>GreetingSection</code>, <code>CandleHeroSection</code>, <code>TaskSection</code>,
+      <code>UpcomingEventsSection</code>, <code>KoloCardSection</code>), <code>MoreScreen</code>,
+      <code>SettingsRoute</code> / <code>SettingsMasterDetailScreen</code>, <code>RemindersRoute</code>,
+      <code>PrayerSessionScreen</code>, <code>StreakDetailScreen</code>, <code>SaintsBrowserScreen</code>,
+      plus the <code>onboarding/</code> welcome / sign-in / parish / reminders flow.</li>
+    <li><strong>ViewModels:</strong> <code>HomeViewModel</code> (exposes the <code>BannerGates</code> invariant),
+      <code>MoreViewModel</code>, <code>SettingsViewModel</code>, <code>RemindersViewModel</code>,
+      <code>StreakDetailViewModel</code>, <code>SaintsBrowserViewModel</code>.</li>
+  </ul>
+  <div class="callout">Banner mutual-exclusion (permission vs. nudge) is enforced in
+  <code>HomeViewModel</code>'s <code>BannerGates</code> combine, not in an <code>else if</code> ladder.</div>
+
+  <h3>Liturgy — <span class="tag">:feature:liturgy-v2</span></h3>
+  <p>The Divine Liturgy reader. It renders the assembled <code>List&lt;LiturgyDisplayBlock&gt;</code> through the
+  five-role rendering contract and offers an in-place <strong>♪ notation-sheet toggle</strong> (Wave C.5): for
+  the core-5 sung parts the body swaps to a <code>ScoreView</code> backed by <code>ChantRepository</code>. The
+  Liturgy table-of-contents is an in-screen sub-state (<code>isTocShown</code>) rather than a separate route —
+  drawn as a full-screen overlay in the single-pane reader, or as a persistent inline pane in the expanded
+  multi-pane (tablet) layout.</p>
+  <ul>
+    <li><strong>Screen:</strong> <code>LiturgyScreenV2</code> (drives <code>openToc</code> / <code>closeToc</code>;
+      hosts the ♪→<code>ScoreView</code> swap).</li>
+    <li><strong>ViewModel / support:</strong> <code>LiturgyViewModelV2</code>,
+      <code>LiturgyAssemblyOrchestrator</code>, <code>LiturgyBlockTypeMapper</code> (the five-role mapper at the
+      V2 boundary), <code>LiturgyFeatureFlags</code>.</li>
+  </ul>
+  <div class="callout">The TOC overlay is suppressed in the persistent-TOC layout modes
+  (<code>layoutMode.hasPersistentToc</code>) to avoid a double TOC.</div>
+
+  <h3>Psalter — <span class="tag">:feature:psalter-v2</span></h3>
+  <p>A verse-per-line kathisma reader. Each of the 20 kathismas is divided into four sections (three
+  <em>Slavas</em> plus the closing prayer), with per-Slava navigation in the reader. A kathisma list / schedule
+  view feeds the reader, and the surface is reachable both from the More tab and as a link in the Prayers list.</p>
+  <ul>
+    <li><strong>Screens:</strong> <code>PsalterHomeRoute</code>, <code>KathismaListRoute</code> /
+      <code>KathismaListDetailRoute</code> (<code>PsalterListDetailRoute</code>), <code>KathismaReader</code>
+      (<code>KathismaReaderRoute</code>), <code>PsalterScheduleRoute</code>.</li>
+    <li><strong>ViewModels:</strong> <code>PsalterHomeViewModel</code>, <code>KathismaListViewModel</code>,
+      <code>KathismaReaderViewModel</code>, with <code>PsalterCoordinatorGate</code> coordinating entry.</li>
+  </ul>
+
+  <h3>Calendar — <span class="tag">:feature:calendar-v2</span></h3>
+  <p>The liturgical calendar. A month grid drives a per-day detail sheet and a full-text search; the assembler
+  layer resolves the movable + fixed cycles, the vestment color, and the fast intensity for each civil date.</p>
+  <ul>
+    <li><strong>Screens:</strong> <code>CalendarScreen</code> (with <code>MonthTab</code> / <code>WeekTab</code> /
+      <code>TodayTab</code> / <code>YearAgenda</code> tabs), <code>DayDetailScreen</code>,
+      <code>CalendarSearchScreen</code>, <code>CalendarDetailPaneRoute</code>, plus the admin
+      <code>CreateScheduleScreen</code>.</li>
+    <li><strong>ViewModels:</strong> <code>CalendarViewModel</code>, <code>DayDetailViewModel</code>,
+      <code>CalendarSearchViewModel</code>, <code>CalendarDetailPaneViewModel</code>,
+      <code>CreateScheduleViewModel</code>.</li>
+    <li><strong>Assembler:</strong> <code>CalendarMonthAssembler</code>, <code>FastIntensityResolver</code>,
+      <code>VestmentColorResolver</code>.</li>
+  </ul>
+
+  <h3>Community — <span class="tag">:feature:community</span></h3>
+  <p>The parish surface and the only Firebase-backed feature module. It pairs a member-facing community home
+  with admin schedule / parish tools: event creation, participant rosters, role grants with an audit log,
+  prayer circles, and a live "Вервиця" (rosary) session view.</p>
+  <ul>
+    <li><strong>Member screens:</strong> <code>CommunityHomeScreen</code>, <code>EventDetailScreen</code>,
+      <code>circle/CircleScreen</code> + <code>CircleHistoryScreen</code>, <code>live/VervytsiaLiveScreen</code>
+      + <code>VervytsiaOverviewScreen</code>.</li>
+    <li><strong>Admin screens:</strong> <code>CommunityAdminScreen</code> / <code>AdminScheduleMatrix</code>,
+      <code>admin/AdminHubScreen</code>, <code>admin/create/CreateEventRoute</code> +
+      <code>create/simple/SimpleEventCreateScreen</code>, <code>admin/participants/ParticipantsScreen</code>,
+      <code>roles/RoleHubScreen</code> + <code>RosterScreen</code> + <code>AuditLogScreen</code>.</li>
+    <li><strong>ViewModels / data:</strong> <code>CommunityHomeViewModel</code>,
+      <code>EventDetailViewModel</code>, <code>CircleViewModel</code>, <code>VervytsiaLiveViewModel</code>,
+      <code>AdminHubViewModel</code>, <code>CreateEventViewModel</code>, <code>RoleHubViewModel</code>
+      (backed by <code>FirestoreRoleHubRepository</code>, with a <code>MockRoleHubRepository</code> for tests).</li>
+  </ul>
+
+  <h3>Prayers hub — <span class="tag">:feature:rosary-v2</span></h3>
+  <p>The Prayers (Молитви) tab. Despite the module name it is the whole prayers hub: the rosary
+  (<em>Вервиця</em>) with a focus / activity-ring session, the akathist, the Canon of the Day, and the flat
+  prayers list.</p>
+  <ul>
+    <li><strong>Screens:</strong> <code>RosaryRoute</code> + <code>overview/RosaryOverviewScreen</code> +
+      <code>focus/RosaryFocusScreen</code>, <code>AkafistRoute</code>, <code>CanonOfDayRoute</code>,
+      <code>PrayersListRoute</code>, <code>reader/PrayerSectionReaderRoute</code>.</li>
+    <li><strong>ViewModels:</strong> <code>RosaryViewModel</code>, <code>AkafistViewModel</code>,
+      <code>CanonOfDayViewModel</code>, <code>PrayerSectionReaderViewModel</code>.</li>
+  </ul>
+  <div class="callout warn">Akathist content (<code>akathist_theotokos.json</code> via <code>AkafistViewModel</code>)
+  is <strong>clergy-review-pending</strong> — the UA text is transcribed from a cited public-domain UGCC source
+  but awaits clergy verification before the <code>clergyReviewPending</code> flag is cleared.</div>
+
+  <h3>Kids Mode — <span class="tag">:feature:kids-v2</span></h3>
+  <p>The simplified, palette-themed surface for children (7+). A theme picker lets the child choose one of three
+  kids palettes (Rose / Meadow / Sky), and a dedicated kids home renders the tasks in that palette. Paparazzi-covered
+  since Wave KV.1 (picker + Kids Home, light and dark).</p>
+  <ul>
+    <li><strong>Screens:</strong> <code>KidsHomeScreen</code>, <code>KidsThemePickerScreen</code>,
+      <code>KidsThemeContainer</code> (applies the chosen <code>KidsThemeColor</code>).</li>
+    <li><strong>ViewModels:</strong> <code>KidsHomeViewModel</code>, <code>KidsThemePickerViewModel</code>.</li>
+  </ul>
+
+  <h3>Spiritual Advisor — <span class="tag">:feature:chat-v2</span></h3>
+  <p>The "Духовний помічник" Q&amp;A surface: a <strong>stateless</strong> streaming chat that grounds each
+  answer on keyword-retrieved knowledge-base chunks (behind the default-OFF <code>spiritualAdvisorEnabled</code>
+  flag). It models honest latency states rather than a fake typing animation. The screen lives here; the
+  ViewModel and the <code>StreamingChatClient</code> live in <span class="tag">:app</span>.</p>
+  <ul>
+    <li><strong>Screen / module wiring:</strong> <code>ChatScreenContent</code>, <code>ChatV2Module</code>,
+      <code>AdvisorAvailability</code>, <code>SpiritualAdvisorStrings</code>.</li>
+    <li><strong>State — <code>sealed interface ChatUiState</code>:</strong></li>
+  </ul>
+  <pre><code>Connecting                       // request sent, no tokens yet
+Streaming(partial)               // real tokens arriving progressively
+Done                             // full answer rendered
+OfflineFallback(text)            // NoKey / Offline keyword-only answer
+Error(messageUa, retryable)      // honest failure with retry affordance</code></pre>
+
+  <h3>Navigation note</h3>
+  <p>The bottom nav exposes <strong>five</strong> tabs — <strong>Дім</strong> (home), <strong>Літургія</strong>
+  (liturgy), <strong>Молитви</strong> (prayers), <strong>Спільнота</strong> (community), and
+  <strong>Більше</strong> (more). <em>Psalter</em> and <em>Settings</em> are top-level (non-modal) destinations
+  reached via the <strong>More</strong> tab — they keep the bottom nav, whereas <code>@Modal</code>-annotated
+  routes get full-screen treatment and hide it.</p>
+</section>
+
+<!-- ===================== SECTION 6 ===================== -->
+<section id="designsystem" class="doc-section">
+<h2>6. Design System &amp; Visual Layer</h2>
+
+<p>The visual layer of Molytovnyk lives in a single dedicated Gradle module, <span class="tag">:core:designsystem</span>. It holds the V2 design tokens (palette, typography, spacing, shapes, animations), the theme machinery, and a library of shared Compose components. Every <span class="tag">:feature:*-v2</span> screen draws exclusively from this module — features never hardcode a hex color, an <code>sp</code> size, or a <code>dp</code> dimension.</p>
+
+<div class="callout">
+<strong>Single source of truth.</strong> The canonical token source is <a href="#"><code>design-system/project/colors_and_type.css</code></a>. Every <code>val</code> in the theme files is a <em>direct port</em> of a CSS custom property — the Kotlin files carry the original <code>--token-name</code> in a trailing comment so the mapping stays auditable. The older <code>design/</code> folder is historical only; do not source tokens from it.
+</div>
+
+<h3>6.1 Token architecture</h3>
+
+<p>The theme package (<code>core/designsystem/.../theme/</code>) decomposes the CSS into five token files plus the theme plumbing:</p>
+
+<table>
+<thead><tr><th>File</th><th>Owns</th></tr></thead>
+<tbody>
+<tr><td><code>Color.kt</code></td><td>Raw pigment <code>Color(0xFF…)</code> values, ported 1:1 from the CSS. Three palette families: <strong>Candlelit Nave</strong> (dark — the primary prayer mode), <strong>Vellum</strong> (light — daytime reading), and the Kids pigments.</td></tr>
+<tr><td><code>Type.kt</code></td><td>Font families + the Material 3 <code>Typography</code> table + ~45 standalone custom roles.</td></tr>
+<tr><td><code>Dimens.kt</code></td><td><code>MolytovnykDimens</code> — spacing (<code>SpaceXs</code>…<code>Space2xl</code>), <code>ScreenPad</code>, and the card radii (<code>RadiusCard</code> 20dp, <code>RadiusCardSm</code> 18dp, <code>RadiusCardXs</code> 16dp).</td></tr>
+<tr><td><code>Shapes.kt</code></td><td><code>MolytovnykShapes</code> — card and button corner shapes.</td></tr>
+<tr><td><code>Animations.kt</code></td><td><code>MolytovnykAnimations</code> — easing curves and durations.</td></tr>
+<tr><td><code>MolytovnykThemeV2.kt</code></td><td>Root composable; provides <code>LocalMolytovnykColors</code>, the scaled <code>MaterialTheme.typography</code>, and the <code>MaterialTheme.colorScheme</code> per active variant (dark / light / kids).</td></tr>
+<tr><td><code>MolytovnykColors.kt</code></td><td>The semantic token data class. Composables read pigments by <em>role</em> via <code>LocalMolytovnykColors.current.&lt;token&gt;</code> — text tokens flip to dark-on-light values automatically in the light theme.</td></tr>
+<tr><td><code>ThemePalette.kt</code></td><td>Base pigments resolved per theme variant — the dark/light/kids switch point.</td></tr>
+</tbody>
+</table>
+
+<h3>6.2 Typography — the Cormorant &amp; Inter idiom</h3>
+
+<p>Three font roles carry the whole system: <strong>Cormorant Garamond</strong> (display / headings), <strong>Noto Serif</strong> (liturgical body and prayer text), and <strong>Inter</strong> (UI chrome). The Material 3 roles are produced by a builder:</p>
+
+<pre><code>fun molytovnykTypography(scale: Float = 1.0f): Typography</code></pre>
+
+<p>The 11 M3 roles map onto the CSS scale (e.g. <code>displayLarge ← --text-hero</code> ≈ 96sp Cormorant; <code>bodyLarge ← --text-body-lg</code> 18sp Noto Serif). Anything the M3 vocabulary can't express lives as a standalone named <code>TextStyle</code> — <code>Eyebrow</code>, <code>Streak</code>, <code>NavLabel</code>, the five <code>LiturgyBlock*</code> roles, and the cluster of banner/dialog/score roles promoted out of inline tuples across the Polish sprints. Role names follow the designer's <em>baseline lexicon</em> (Cormorant-and-Inter idiom, no Material vocabulary, no abstract scale numbers).</p>
+
+<div class="callout">
+<strong>Fonts currently fall back to system serif/sans.</strong> <code>CormorantGaramond</code> and <code>NotoSerifBody</code> alias <code>FontFamily.Serif</code>; <code>InterUi</code> aliases <code>FontFamily.SansSerif</code>. Embedded variable TTFs (the <code>[wght]</code> axis) were tried but layoutlib (Paparazzi) cannot resolve <code>FontVariation.Settings(…)</code> and threw on every snapshot — the re-introduction path is N static-weight TTFs per family. Visual fidelity arrives with that swap; the scale metrics are already correct.
+</div>
+
+<h4>Text-scale accessibility &amp; damped image scaling</h4>
+
+<p>User text size is a first-class accessibility control. <code>LocalTextScale</code> (range <code>0.8f..1.6f</code>, 7 slider stops, persisted in <code>UserPreferences.textSizeScale</code>) is folded together with a <em>device-size-class</em> bump (<code>LocalDeviceTextScale</code> — 1.0× on small sw360 screens, 1.07× on the dominant sw411+ bucket) into a single <code>LocalEffectiveTextScale</code>. M3 roles are pre-scaled by <code>molytovnykTypography(scale)</code> at theme-compose time; standalone roles call <code>.scaledByLocalTextScale()</code> at their use site.</p>
+
+<p>Images do <em>not</em> track text 1:1 — they would crowd small screens. A damping curve keeps text scaling fully while images grow gently:</p>
+
+<pre><code>imageScale = 1 + (textScale - 1) * IMAGE_SCALE_DAMPING   // IMAGE_SCALE_DAMPING = 0.5f
+// textScale 1.30 → imageScale 1.15   (image grows 15%, not 30%)
+// textScale 1.60 → imageScale 1.30
+// textScale 0.80 → imageScale 0.90</code></pre>
+
+<p>Exposed as <code>Dp.scaledByLocalTextScale()</code> / the pure helper <code>dampedImageScale(textScale)</code>. The rule is <strong>tokens 1:1, no scaling on padding</strong> — layout spacing, hairline borders, and ≤24dp chrome icons stay fixed in <code>dp</code>. A 280dp candle hero on a 360dp screen overflows at 1.30× text but fits comfortably at the damped 1.15×.</p>
+
+<h3>6.3 Kids Mode palettes</h3>
+
+<p>Kids Mode swaps the entire palette for one of three iconographically-coded variants, chosen by the child at onboarding and persisted in prefs. The <code>KidsPalette</code> enum carries both a light and a dark variant per palette:</p>
+
+<ul>
+<li><strong>ROSE</strong> (Троянда) — Theotokos warmth, the dusty rose of the мафорій Богородиці.</li>
+<li><strong>MEADOW</strong> (Лука) — monastic Carpathian green.</li>
+<li><strong>SKY</strong> (Небо) — angelic lapis, the bleached azure of icon backgrounds.</li>
+</ul>
+
+<p>Each palette overrides accent/surface roles while keeping the structural token contract. The dark variants follow a documented role-flip rule (dark <code>primary</code> becomes the lifted accent for CTAs and titles; <code>deep</code> drops to borders; <code>darkText</code> takes body-text duty). This V2 enum is distinct from the legacy V1 <code>KidsThemeColor</code> (PINK / BLUE / GREEN / ORANGE / PURPLE).</p>
+
+<h3>6.4 Shared components</h3>
+
+<p>The components package holds ~50 composables. Three are load-bearing:</p>
+
+<ul>
+<li><strong><code>MolytovnykCard</code> + <code>MolytovnykButton</code></strong> — the shared card/button primitives from the Material-native polish initiative. <code>MolytovnykCard(tier = Primary/Nav/Compact, …)</code> gives the three radius tiers (20/18/16dp), solid-or-brush fill, candle-flame <code>glow</code> + celebratory <code>leadingStripe</code>, ripple + <code>Role.Button</code> semantics, and opt-in light-theme elevation. <code>MolytovnykButton(style = Primary/Secondary/Link)</code> wraps the three M3 button kinds in the byzantine palette. New home/feature surfaces compose these instead of hand-rolling <code>clip → background → border → clickable → padding</code>.</li>
+<li><strong><code>LiturgyBlockText</code></strong> — the renderer for the five canonical liturgy text roles. It maps a <code>LiturgyBlockType</code> (<code>Rubric · Said · Sung · PeopleSung · Response</code>, the enum now lifted to <code>:core:domain</code> commonMain so iOS shares it) onto the matching <code>LiturgyBlock*</code> typography role plus a per-state color from the active theme. The five-role contract is the designer round-trip recorded in <a href="#"><code>design-system/response/2026-05-19-liturgy-roles/REVIEW.md</code></a>.</li>
+</ul>
+
+<h3>6.5 Dark-theme parity &amp; token-leak enforcement</h3>
+
+<p>Dark/light parity is structural: pigments are never referenced directly inside features — they go through semantic role tokens that resolve per variant, so a screen written once renders correctly in both themes (and in all three Kids palettes). The discipline is enforced by custom Detekt rules in <span class="tag">:build-logic:detekt-rules</span> (a pure-JVM module registered under the <code>molytovnyk-token-leak</code> rule-set, consumed by the root detekt block):</p>
+
+<ul>
+<li><code>HexColorLiteralRule</code> — flags any hardcoded <code>Color(0xFF…)</code> in feature code.</li>
+<li><code>BareSpDpLiteralRule</code> — flags raw <code>sp</code>/<code>dp</code> literals that should be a <code>MolytovnykDimens</code> constant.</li>
+<li><code>InlineTextStyleRule</code> — flags inline <code>TextStyle(…)</code> that should be a named typography role.</li>
+</ul>
+
+<p>The token-source module <code>:core:designsystem</code> itself is allowlisted at the root Detekt level — it is the one place raw literals legitimately live.</p>
+
+<h3>6.6 Visual regression — Paparazzi as a Definition-of-Done gate</h3>
+
+<p>Screenshot tests are a hard merge gate, not a nicety. Any PR touching a <code>:feature:*-v2</code> <code>*Screen.kt</code> / <code>*Route.kt</code> MUST land with at least one Paparazzi <code>@Test</code> covering the modified surface (one <code>@Test</code> per visual state: default · loading · error · empty · disabled), with the recorded PNG under <code>&lt;module&gt;/src/test/snapshots/images/</code>. Paparazzi is the daily driver — pure-JVM via Robolectric layoutlib, working on Windows and CI. The <a href="#"><code>docs/screenshot-tests.md</code></a> runbook is canonical; the <code>/verify-screen &lt;screen-file&gt;</code> skill scaffolds the test and records baselines.</p>
+
+<div class="callout warn">
+<strong>Two recurring gotchas.</strong>
+<ul>
+<li><strong>One <code>@Rule Paparazzi</code> per test class.</strong> layoutlib is single-instance per test class — two <code>@get:Rule Paparazzi</code> fields throw <code>IllegalStateException</code> at <em>runtime</em> (not compile time). Split device variants into separate classes (e.g. <code>HomePaparazziTest</code> + <code>HomePaparazziSmallScreenTest</code>).</li>
+<li><strong>Token / typography churn drifts baselines everywhere.</strong> Any edit to a <code>theme/</code> file (<code>Type.kt</code>, <code>Color.kt</code>, <code>Dimens.kt</code>, <code>Shapes.kt</code>, <code>Animations.kt</code>) shifts sub-pixel font rasterization across <em>every</em> Paparazzi-bearing module — not just the one you touched. Re-record the full set via <code>/regression-sweep</code> (which encodes the fan-out rules) and ship the regenerated PNGs in the same PR. A token PR without a baseline diff is rejected, because color/typography shifts are invisible at code-review time.</li>
+</ul>
+</div>
+</section>
+
+<!-- ===================== SECTION 7 ===================== -->
+<section id="cloud" class="doc-section">
+  <h2>7. Firebase, Cloud &amp; Backend Functions</h2>
+
+  <p>
+    Molytovnyk is <strong>offline-first</strong>. The entire liturgical engine — the daily Divine
+    Liturgy, psalter, calendar, and personal prayers — is served from JSON bundled in
+    <code>res/raw</code> and a local Room database; <em>none of the core content is cloud-backed</em>.
+    Firebase exists only to power the <strong>social and parish</strong> layer: Community/parish
+    events, prayer circles, presence, capability-gated clergy tooling, and push notifications. The
+    app builds, runs, and stays fully useful with no <code>google-services.json</code> at all.
+  </p>
+
+  <div class="callout">
+    <strong>Dormant-guard invariant.</strong> Every gateway in <code>:core:data-cloud</code> checks
+    <code>FirebaseApp.getApps(context).isEmpty()</code> and returns null / no-ops when Firebase is
+    absent. CI stubs <code>google-services.json</code> with dummy ids and every cloud feature no-ops
+    cleanly. New gateways <em>must</em> follow the pattern — <code>DormantGuardTest</code> guards it.
+    Real project: <span class="tag">molytovnyk-40207</span> (Blaze plan, which unlocks presence,
+    cloud psalter, and FCM push).
+  </div>
+
+  <h3>7.1 <code>:core:data-cloud</code> — the Firebase boundary</h3>
+  <p>
+    This module is the app's single seam onto Firebase. Nothing else imports the Firebase SDK
+    directly. It owns four responsibilities:
+  </p>
+  <ul>
+    <li><strong>Auth gateways</strong> — <code>FirebaseAuthGateway</code> (anonymous-first, upgradeable
+      to Google via <code>linkWithCredential</code>), <code>OnboardingAuthGateway</code>,
+      <code>GoogleSignInLauncher</code>. Auth state is exposed as a <code>StateFlow&lt;AuthState&gt;</code>.</li>
+    <li><strong>App Check</strong> — <code>AppCheckGateway</code> attests requests so only the genuine
+      app can reach Firestore / Functions.</li>
+    <li><strong>Firestore cloud sources</strong> — one typed source per surface:
+      <code>FirestoreEventCloudSource</code>, <code>FirestoreCircleCloudSource</code>,
+      <code>FirestoreOccurrenceCloudSource</code>, <code>FirestoreSubscriptionCloudSource</code>,
+      <code>FirestorePsalterIntentCloudSource</code> / <code>…RotationCloudSource</code>,
+      <code>FirestoreLiturgyScheduleCloudSource</code>, <code>FirestoreParishCloudJoiner</code>,
+      news/completion/feature-flag sources, plus <code>FirebaseRemoteConfigSource</code> (force-update
+      gates) and <code>RtdbPresenceSource</code> (Realtime Database presence).</li>
+    <li><strong>FCM topics + notification specs</strong> — <code>FcmTopicGateway</code>,
+      <code>MolytovnykMessagingService</code> (inbound routing), and the per-domain notification
+      channels + specs (<code>EventNotificationSpec</code>, <code>CircleNotificationSpec</code>,
+      <code>QuietHoursPrefs</code>).</li>
+  </ul>
+  <p>
+    <strong>Capability gating.</strong> Custom claims are stamped per-parish onto the Firebase Auth
+    token; <code>hasCap(capability)</code> in <code>firestore.rules</code> reads
+    <code>request.auth.token.capabilities[parishId][]</code>. The catalogue (in
+    <code>functions/src/capabilities.ts</code>) includes <code>event.edit_recurrence</code>,
+    <code>event.cancel_occurrence</code>, <code>event.send_announcement</code>,
+    <code>event.view_minor_data</code>, <code>psalter.edit_intent</code>,
+    <code>eparchy.promote_event</code>, and <code>clergy_reviewer</code>.
+  </p>
+
+  <h3>7.2 Firestore security rules &amp; the test harness</h3>
+  <p>
+    <code>firestore.rules</code> is an <strong>invariant layer</strong>, not a convenience — it is the
+    server-side authority that no client can bypass. It enforces membership gates, the per-parish
+    capability claims above, and a <code>schemaVersion: Int</code> on every document (a future
+    migration hook present from day one). Realtime Database has its own
+    <code>database.rules.json</code> for presence, and query indexes live in
+    <code>firestore.indexes.json</code> (the at-start dispatcher needs a <code>scheduledWallClock</code>
+    <strong>COLLECTION_GROUP</strong> index declared there — prod-breaking if missing).
+  </p>
+  <p>
+    Rules are exercised by a dedicated harness in <code>firebase-rules-tests/</code>
+    (<code>molytovnyk-firebase-rules-tests</code>), which runs synthetic payloads against the deployed
+    rules under the Firebase Emulator via <code>@firebase/rules-unit-testing</code>:
+  </p>
+  <pre><code>cd firebase-rules-tests &amp;&amp; npm test
+# firebase emulators:exec --only firestore … "jest --runInBand"</code></pre>
+
+  <h3>7.3 Cloud Functions (<code>functions/</code>)</h3>
+  <p>
+    Firebase Cloud Functions <strong>v2</strong>, <strong>Node.js 22 / TypeScript</strong>, region
+    <code>europe-west3</code>. Dependencies are <code>firebase-admin</code> +
+    <code>firebase-functions</code>; deploy with
+    <code>npm --prefix functions run build &amp;&amp; firebase deploy --only functions</code>. The
+    client is the <em>sole</em> producer of event/occurrence docs — no function creates them; the TS
+    layer only reads, queries, and fans out. Main triggers:
+  </p>
+  <table>
+    <thead>
+      <tr><th>Function</th><th>Type</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>setRoleCapabilities</code></td><td>Callable</td><td>Stamp capability claims on the Auth token (audit-before-action).</td></tr>
+      <tr><td><code>onOccurrenceUpdated</code></td><td>Firestore trigger</td><td>Fan out <code>intent_updated</code> FCM to the event topic.</td></tr>
+      <tr><td><code>onOccurrenceStatusChanged</code> / <code>onEparchyOccurrenceStatusChanged</code></td><td>Firestore trigger</td><td>Emit <code>reminder_at_start</code> FCM when an occurrence flips to <code>live</code> (both D-009 stores).</td></tr>
+      <tr><td><code>onParishSubscriptionWritten</code> / <code>onEparchySubscriptionWritten</code></td><td>Firestore trigger</td><td>Maintain denormalized <code>subscriptionCount</code>.</td></tr>
+      <tr><td><code>onPsalterIntentUpdated</code></td><td>Firestore trigger</td><td>Fan out <code>psalter_intent_updated</code> FCM to the psalter topic.</td></tr>
+      <tr><td><code>aggregatePresence</code></td><td>RTDB trigger</td><td>Maintain <code>/presenceCount</code> from <code>/presence</code> children.</td></tr>
+      <tr><td><code>dailyRollover</code></td><td>Scheduler (daily, Kyiv)</td><td>Flip open occurrences to <code>completed</code> / <code>missed</code>. Idempotent.</td></tr>
+      <tr><td><code>atStartPush</code></td><td>Scheduler (every min)</td><td>Flip <em>due</em> occurrences to <code>live</code> via one <code>collectionGroup</code> range query; the status-change triggers then send the push.</td></tr>
+    </tbody>
+  </table>
+  <p>
+    Two backend invariants are absolute: <strong>audit-before-effect</strong> (every callable writes an
+    audit entry <em>before</em> any side effect; if the audit fails the function aborts and no side
+    effect occurs) and the <strong>D-009 dual-store</strong> (parish-nested
+    <code>parishes/{parishId}/events/…</code> and eparchy-flat <code>eparchyEvents/…</code> paths carry
+    matching trigger logic). The occurrence start-time contract also splits two names that look
+    unifiable but must not be: the doc field is <code>scheduledWallClock</code> (Kyiv wall-clock ISO),
+    while the FCM wire key is <code>scheduledAt</code>.
+  </p>
+
+  <h3>7.4 FCM &amp; the notification-id registry</h3>
+  <p>
+    Inbound pushes route by <strong>topic</strong>. Producers in <code>functions/src</code>
+    (<code>topicForEvent</code> / <code>topicForCircle</code> / <code>topicForPsalter</code>) build
+    <code>events_{eventId}</code>, <code>circles_{circleId}</code>, and <code>psalter_{parishId}</code>;
+    <code>MolytovnykMessagingService</code> dispatches by the matching prefix to typed handlers, and the
+    data payload's <code>type</code> field (<code>intent_updated</code>, <code>psalter_intent_updated</code>,
+    <code>reminder_at_start</code>) selects the handler.
+  </p>
+  <p>
+    On the device side, <code>NotificationIds</code> is the <strong>single source of truth</strong> for
+    every <code>NotificationManager.notify(id, …)</code> integer — a duplicate id silently dismisses the
+    earlier notification, so three subsystems are split into disjoint reserved ranges:
+  </p>
+  <table>
+    <thead><tr><th>Range</th><th>Category</th><th>Producer</th></tr></thead>
+    <tbody>
+      <tr><td><code>1000..1099</code></td><td>Local reminders</td><td>fixed <code>REMINDER_MORNING = 1001</code>, <code>REMINDER_EVENING = 1002</code>, <code>ANGEL_DAY = 1003</code></td></tr>
+      <tr><td><code>2000..2999</code></td><td>Events (FCM)</td><td><code>eventNotificationId(eventId)</code> — <code>start + abs(hash) % width</code></td></tr>
+      <tr><td><code>3000..3999</code></td><td>Circles (FCM)</td><td><code>circleNotificationId(circleId, slot)</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <strong>Two real-world gotchas.</strong>
+    <ul>
+      <li><strong>FCM topic names forbid <code>/</code>.</strong> Topic names must match
+        <code>[a-zA-Z0-9-_.~%]+</code>. An early <code>events/{id}</code> form was rejected by
+        <em>both</em> the admin <code>send()</code> (error silently swallowed by the emitter) and every
+        client <code>subscribeToTopic()</code> — so <em>no</em> events / circles / psalter push delivered
+        in production until the separator was renamed to <code>_</code> (#1221). The producer builders and
+        every consumer prefix must use the <strong>identical</strong> format; a one-character drift fails
+        silently.</li>
+      <li><strong>The id formula is duplicated by design.</strong> <code>:core:data-cloud</code> cannot
+        import <code>:app</code>, so <code>CircleNotificationSpec.from</code> /
+        <code>EventNotificationSpec</code> <em>inline the same range + hash math</em> that lives in
+        <code>NotificationIds</code>. If the range or formula changes in one place,
+        <strong>change both</strong>.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===================== SECTION 8 ===================== -->
+<section id="build" class="doc-section">
+<h2>8. Build, Test, CI &amp; Development Process</h2>
+
+<p>Molytovnyk is built with Gradle (Kotlin DSL) on a 13-module project: <strong>Java 17, Kotlin 2.0.21, AGP 8.11.0, Gradle 8.13</strong>, <code>minSdk 26 / targetSdk 34 / compileSdk 35</code>. The sections below cover the day-to-day build and test commands, the test stack and conventions, the visual-regression and functional-QA gates, the CI model, and the wave/sprint SDLC that drives the repo.</p>
+
+<h3>8.1 Build &amp; test commands</h3>
+
+<table>
+<thead>
+<tr><th>Command</th><th>What it does</th></tr>
+</thead>
+<tbody>
+<tr><td><code>./gradlew :app:assembleDebug</code></td><td>Build the debug APK.</td></tr>
+<tr><td><code>./gradlew :app:assembleRelease</code></td><td>Build the release APK (requires the signing config).</td></tr>
+<tr><td><code>./gradlew test</code></td><td>Run all Android-module unit tests (JVM). Note: this does <em>not</em> pick up the KMP module — <code>:core:domain</code> registers <code>jvmTest</code>, not <code>test</code>.</td></tr>
+<tr><td><code>./gradlew :app:test</code></td><td>Run the <code>:app</code> module's unit tests only.</td></tr>
+<tr><td><code>./gradlew :core:domain:jvmTest</code></td><td>Run the shared KMP module's JVM unit tests.</td></tr>
+<tr><td><code>./gradlew :app:test --tests "…CalendarServiceTest"</code></td><td>Run a single test class (fully-qualified) via the <code>--tests</code> filter.</td></tr>
+<tr><td><code>./gradlew androidTest</code></td><td>Run instrumented tests (requires a connected device / emulator).</td></tr>
+</tbody>
+</table>
+
+<div class="callout warn">
+<p><strong>Windows note — prefer <code>./gw</code> over bare <code>./gradlew</code>.</strong> The in-repo <code>./gw</code> wrapper exports the correct <code>JAVA_HOME</code> for the Android Studio JBR. Bare <code>./gradlew</code> can fail silently with <code>SDK location not found</code> while the Bash wrapper still reports exit&nbsp;0. Use <code>./gw</code> for all local builds and test runs.</p>
+</div>
+
+<h3>8.2 Test stack &amp; conventions</h3>
+
+<p>The suite is roughly <strong>55 <code>*Test.kt</code> unit-test files</strong> under <code>app/src/test</code> (plus a debug-scoped tag test under <code>testDebug</code>, instrumented tests under <code>androidTest</code>, and per-module tests in the <code>:feature:*-v2</code> modules). Key suites guard the liturgical engine — <code>CalendarService</code> (Pascha + movable cycles), <code>LiturgyAssembler</code> (rule-based substitution), pericope-reference parsing, and feast Golden-Ordo snapshots.</p>
+
+<ul>
+<li><strong>Stack:</strong> JUnit4 + <code>kotlin-test</code> + <code>kotlinx-coroutines-test</code>. Instrumented tests add Turbine + Compose UI test rules. Use <code>runTest&nbsp;{}</code> for coroutine tests.</li>
+<li><strong>Fakes, not mocks.</strong> This is a hard convention — <em>zero</em> MockK/Mockito imports exist project-wide. All test doubles are <code>Fake&lt;InterfaceName&gt;</code> classes that implement the real interface, backed by a <code>MutableStateFlow</code> and mirroring real semantics (REPLACE-on-conflict for DAOs, sorted queries where applicable). For controllable error paths, fakes expose <code>var isNextOpSuccessful</code> / <code>var errorToThrow</code> / <code>fun reset()</code>. Do <strong>not</strong> introduce MockK or Mockito for new tests.</li>
+<li><strong>Canonical fakes</strong> live in the <code>:core:database</code> testing package (e.g. <code>FakeUserPreferencesSource</code> for DataStore, <code>FakeCommunityDao</code> for DAOs); reference them before inlining a new <code>private class</code> fake.</li>
+<li><strong>Scaffolding:</strong> the <code>/unit-test</code> and <code>/test-scaffold</code> skills generate correctly-imported test files following these conventions.</li>
+</ul>
+
+<h3>8.3 Visual regression — Paparazzi as a DoD gate</h3>
+
+<p>Any PR that touches a <code>:feature:*-v2</code> screen <strong>must</strong> land with a Paparazzi <code>@Test</code>. Paparazzi renders Compose previews to PNG via a pure-JVM Robolectric layoutlib path (no emulator) and fails the build when a committed baseline doesn't match the freshly-rendered output. See §6.6 for the two recurring baseline gotchas (one rule per class; token churn drifts every module).</p>
+
+<h3>8.4 Pre-release functional QA — CORE vs FULL</h3>
+
+<p>On top of the automated layers, repeatable on-device functional testing runs in two tiers (hub: <a href="#"><code>docs/qa/README.md</code></a>), driven via <code>/qa-run core|full</code>:</p>
+<table>
+<thead><tr><th>Tier</th><th>Scope</th><th>Time</th><th>Gates</th></tr></thead>
+<tbody>
+<tr><td><strong>CORE</strong></td><td>Devotional critical path + cheap regression nets (a strict subset of FULL)</td><td>~30–45&nbsp;min</td><td>A <strong>pilot</strong> install — run before <em>every</em> release candidate</td></tr>
+<tr><td><strong>FULL</strong></td><td>Every screen / flow / state + engine + multi-device Firebase</td><td>a few&nbsp;hrs</td><td>A <strong>wide</strong> release — run monthly, or before a Wave-letter changeover</td></tr>
+</tbody>
+</table>
+<p>Rule of thumb: <em>CORE gates a pilot install; FULL gates a wide release.</em> A green CORE never substitutes for FULL. This is the <strong>functional</strong> layer — it complements, not replaces, the <code>/release-readiness</code> config gates and the local-CI / <code>/regression-sweep</code> merge gate.</p>
+
+<h3>8.5 CI model — local gate, remote certification</h3>
+
+<div class="callout">
+<p>The <strong>merge gate is local Gradle</strong> (the regression-watcher / <code>/regression-sweep</code> sweep). Remote GitHub Actions CI is a <strong>certification layer, not a blocking gate</strong> — branch protection is unavailable on this private repo's plan, so the remote check blocks nothing structurally.</p>
+</div>
+
+<p>The <code>.github/workflows/ci.yml</code> pipeline runs three jobs:</p>
+<ul>
+<li><strong>Build (debug) + JVM tests</strong> — one Gradle pass over <code>:app:assembleDebug :app:lintDebug test :core:domain:jvmTest</code>, then a Paparazzi <code>verifyPaparazziDebug</code> sweep across the seven baseline-owning modules. CI stubs <code>app/google-services.json</code> (the real file is gitignored) so the build succeeds without Firebase secrets.</li>
+<li><strong>Events Firestore rules unit tests</strong> — JDK&nbsp;21 + Node&nbsp;20, runs the rules suite against the Firestore emulator (<code>firebase emulators:exec</code>).</li>
+<li><strong>iOS KMP framework + tests (macOS)</strong> — currently quarantined (<code>if: false</code>) pending a stable macOS runner; not a required check, so it doesn't block merges.</li>
+</ul>
+
+<ul>
+<li><strong>Red CI on <code>main</code> is a 24-hour fix-or-remove item.</strong> A red certification certifies nothing — fix within 24h, or quarantine the failing job/test with a tracked issue. <code>/sprint-close</code> pre-flight blocks a sprint close while the latest <code>main</code> run is red and older than 24h.</li>
+<li><strong>Self-hosted runner.</strong> Because the repo is private, GitHub-hosted minutes are billed and an account-billing lapse instant-fails every hosted run. CI is pinned to a <strong>self-hosted GitHub Actions runner</strong> that consumes no billed minutes; setup is in <a href="#"><code>docs/ci-self-hosted-runner.md</code></a>.</li>
+<li><strong>No-infrastructure fallback.</strong> <code>scripts/dev/local-ci.sh</code> reproduces the entire CI build job locally (stub <code>google-services.json</code> → <code>assembleDebug</code> + <code>lintDebug</code> + <code>test</code> → 7-module Paparazzi verify), so certification can happen with no runner and no billing.</li>
+</ul>
+
+<h3>8.6 Development process — trunk-based, wave-driven</h3>
+
+<p><strong>Trunk-based branching.</strong> <code>main</code> is the only long-lived branch and must always be green. Work lands via short-lived (≤2-day) feature branches named <code>claude/&lt;scope&gt;/&lt;slug&gt;</code> (lowercase-hyphenated; scopes include <code>wave-a</code>…<code>wave-g</code>, <code>fix</code>, <code>chore</code>, <code>exp</code>). The default merge style is a merge commit (<code>gh pr merge --merge --delete-branch</code>); see <a href="#"><code>docs/branching.md</code></a>.</p>
+
+<div class="callout warn">
+<p>Push to the <strong><code>sichalexander</code></strong> remote, <strong>not</strong> <code>origin</code> (<code>njakawaii73</code> is read-only). Before planning or delegating any work, <code>git fetch sichalexander</code> and treat <code>sichalexander/main</code> — not local <code>main</code> — as authoritative; the local clone goes stale fast under parallel sessions.</p>
+</div>
+
+<p><strong>Wave / sprint model.</strong> Work is tracked in three layers: markdown for the spine (<a href="#"><code>docs/ROADMAP.md</code></a>, <code>docs/SPRINT.md</code>, <code>docs/BACKLOG.md</code>), GitHub Issues + Milestones for the per-task layer, and slash commands for upkeep. <strong>One sprint = one Wave step</strong> (e.g. A.2, RR.5, LL). The lifecycle commands are <code>/sprint-plan</code> (open a sprint + file wave-task issues), <code>/sprint-status</code> (read-only dashboard), and <code>/sprint-close</code> (archive + retro). Before picking up an issue, always run <code>gh issue view &lt;N&gt;</code> to check state/assignee/comments — parallel sessions occasionally land on the same issue.</p>
+
+<p><strong>Agent/skill SDLC toolkit.</strong> A sizable in-repo toolkit drives the development loop: a large library of <strong>skills</strong> (<code>.claude/skills</code>), a set of specialized <strong>agents</strong> (<code>.claude/agents</code>, e.g. <code>code-reviewer</code>, <code>design-reviewer</code>, <code>regression-watcher</code>, <code>qa-lead</code>), and slash <strong>commands</strong> (<code>.claude/commands</code>). The full inventory is maintained in <a href="#"><code>AGENTS.md</code></a>.</p>
+
+<p><strong>One-time hook setup per clone:</strong></p>
+<pre><code>git config core.hooksPath .githooks</code></pre>
+<p>This wires the <code>commit-msg</code> hook that enforces the <code>Wave X.Y</code> tag on commits touching <code>feature/</code>, <code>core/</code>, <code>functions/</code>, <code>app/</code>, or <code>firebase-rules-tests/</code>. <code>chore:</code> / <code>docs:</code> / <code>ci:</code> / <code>fix:</code> / <code>test:</code> / <code>style:</code> / <code>refactor:</code> commits are exempt; bypass with <code>--no-verify</code> when necessary.</p>
+</section>
+
+  </main>
+</div>
+
+<footer>
+  <p><b>Molytovnyk — Project Documentation.</b> Generated 2026-06-28 against <code>main</code> at commit <code>aef96f89</code> (Wave LL). Assembled from eight independently-researched sections, each verified against the live source tree — where a doc and the code disagreed, the code won (e.g. the Room DB is at schema v49, not the v46 some prose still cites).</p>
+  <p>Primary in-repo sources: <code>CLAUDE.md</code>, <code>README.md</code>, <code>settings.gradle.kts</code>, <code>docs/ROADMAP.md</code>, <code>docs/MVP.md</code>, the per-module <code>build.gradle.kts</code> / <code>CLAUDE.md</code> files, and the <code>.claude/rules/learnings-*.md</code> spine.</p>
+</footer>
+
+<script>
+  // Active-section highlighting in the TOC as you scroll.
+  (function(){
+    var links = Array.prototype.slice.call(document.querySelectorAll('nav.toc a'));
+    var map = {};
+    links.forEach(function(a){ map[a.getAttribute('href').slice(1)] = a; });
+    var sections = Array.prototype.slice.call(document.querySelectorAll('section.doc-section'));
+    if (!('IntersectionObserver' in window)) return;
+    var current = null;
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting){
+          if (current) current.classList.remove('active');
+          var a = map[e.target.id];
+          if (a){ a.classList.add('active'); current = a; }
+        }
+      });
+    }, { rootMargin: '-10% 0px -75% 0px', threshold: 0 });
+    sections.forEach(function(s){ io.observe(s); });
+  })();
+</script>
+
+</body>
+</html>
