@@ -30,8 +30,8 @@
   <h1>Android &amp; iOS Status</h1>
   <p class="tagline">An evidence-based audit of what is done, partially done, or not started across both platforms — with the reasons behind each call.</p>
   <div class="meta-row">
-    <span class="meta-pill">Code state · <b>main @ aef96f89 (Wave LL)</b></span>
-    <span class="meta-pill">Audited · <b>2026-06-29</b></span>
+    <span class="meta-pill">Code state · <b>main @ daa1375f (Wave LL + stabilization)</b></span>
+    <span class="meta-pill">Audited · <b>2026-06-29</b> · refreshed post-fix</span>
     <span class="meta-pill">Method · <b>source-verified, not doc-claimed</b></span>
   </div>
 </div></header>
@@ -84,7 +84,7 @@
 <tr><td>Next-year Ustav (<code>ustav_2026_2027.json</code>)</td><td class="s">⬜ Not started</td><td>Only the eng scaffold/draft exists (<code>docs/clergy-review/</code>); clergy-paced, hard <strong>Sept 2026</strong> deadline.</td></tr>
 <tr><td>Tablet (Wave TB.A)</td><td class="s">✅ Done</td><td>Shipped 2026-06-25 (#1519): NavigationSuiteScaffold rail + per-surface panes + landscape Book mode.</td></tr>
 <tr><td>Firebase (community, FCM at-start, 16 functions, rules+tests)</td><td class="s">✅ Done</td><td>Live on <code>molytovnyk-40207</code>; at-start push #206 closed with two-device evidence; topic-slash prod bug (#1221) fixed.</td></tr>
-<tr><td>Tests / CI / self-hosted runner</td><td class="s">✅ Done</td><td>~408 unit-test files, 103 Paparazzi classes; remote CI green via self-hosted runner (the old "billing-blocked" banner is stale). <em>See CI health below for a date-pinned caveat.</em></td></tr>
+<tr><td>Tests / CI / self-hosted runner</td><td class="s">✅ Done</td><td>~408 unit-test files, 103 Paparazzi classes; remote CI green via self-hosted runner (the old "billing-blocked" banner is stale). Two date/platform reds surfaced + fixed 2026-06-29 (Peter &amp; Paul canary <a href="https://github.com/SichAlexander/Molutovnuk/pull/1543">#1543</a>, iOS SKIE surface <a href="https://github.com/SichAlexander/Molutovnuk/pull/1537">#1537</a>) — <em>see CI health below</em>.</td></tr>
 </tbody>
 </table>
 
@@ -122,7 +122,7 @@
 <tr><td>Spiritual Advisor chat</td><td class="s">⬜ Not started</td><td>Not ported (post-parity, lowest priority).</td></tr>
 <tr><td>Tablet / iPad (Wave TB.B)</td><td class="s">✅ Done</td><td>Merged 2026-06-28 (#1526 + nits #1536): split-view rail, Book mode, master-detail. <em>Verified merged + CI-green.</em></td></tr>
 <tr><td>App Store GA (iOS.11)</td><td class="s">⬜ Not started</td><td>Only the Google Sign-In slice landed; <strong>Apple Sign-In + account-deletion deferred</strong> (hard GA prerequisites); listing/TestFlight cert owner-gated.</td></tr>
-<tr><td>Remote iOS CI</td><td class="s">🟡 Partial</td><td>macOS <code>ios-kmp-tests</code> job is <code>if:false</code> (#1486) — no automated iOS regression wall on <code>main</code>, only local <code>local-ios-build.sh</code>.</td></tr>
+<tr><td>Remote iOS CI</td><td class="s">🟡 Partial</td><td>macOS <code>ios-kmp-tests</code> job is still <code>if:false</code> (#1486) — no automated iOS regression wall on <code>main</code>, only the local <code>local-ios-build.sh</code> gate (now stronger: a SKIE Swift-surface guard landed in <a href="https://github.com/SichAlexander/Molutovnuk/pull/1538">#1538</a> after a Wave-LL SKIE break red-flipped the local gate, <a href="https://github.com/SichAlexander/Molutovnuk/pull/1537">#1537</a>).</td></tr>
 </tbody>
 </table>
 </section>
@@ -146,10 +146,12 @@
 </section>
 
 <section class="doc-section" id="ci">
-<h2>CI health — date-pinned liturgy canary</h2>
-<div class="callout warn">
-<p>Remote CI on <code>main</code> runs green via the self-hosted runner (the historical "GitHub-Actions billing-blocked" banner is stale). However, the <code>DailyReferenceComparisonTest</code> resolves its date as <strong><code>LocalDate.now()</code></strong> — it compares <em>today's</em> assembled liturgy against a committed reference fixture. CI was green through 2026-06-28 and flipped <strong>red on 2026-06-29 = the feast of Sts. Peter &amp; Paul</strong>, a major fixed feast that the test only exercises once a year.</p>
-<p>Reproduced locally, the <strong>only</strong> mismatch is <code>[FEAST_CLASS]</code>: the Ustav row <code>29.VI</code> declares <code>feast_class: "Господнє свято"</code> (rank 6) but V2 computes <code>POLYELEOS</code> (rank 3), and the promotion-only comparator flags the downgrade. Readings (Ап 2 Кор 193, Єв Мт 67), cycle (Octoechos wk 6), and tone (4) all <strong>match</strong> the reference. Peter &amp; Paul is canonically a great <em>apostles'</em> feast, not a Lord's feast, so the Ustav tag may itself be the imperfect side; there is also no <code>feast_fixed_*</code> service definition for it. User-facing impact is minor (correct readings/tone/cycle; only the feast-rank tier differs on one day a year). Tracked in <a href="https://github.com/SichAlexander/Molutovnuk/issues/1540">#1540</a> — both the classification question and the structural <code>LocalDate.now()</code> test-fragility (a "today"-based canary makes <code>main</code>'s CI calendar-dependent).</p>
+<h2>CI health — both reds resolved</h2>
+<div class="callout">
+<p><strong>Remote CI on <code>main</code> is green</strong> via the self-hosted runner (the historical "GitHub-Actions billing-blocked" banner is stale). Two date/platform-specific reds surfaced and were <strong>both fixed on 2026-06-29</strong>:</p>
+<p><strong>1 · Android — date-pinned liturgy canary</strong> (resolved, <a href="https://github.com/SichAlexander/Molutovnuk/pull/1543">#1543</a>). <code>DailyReferenceComparisonTest</code> resolves its date as <code>LocalDate.now()</code>, so it compares <em>today's</em> liturgy against a committed fixture; it flipped red on the <strong>SS. Peter &amp; Paul</strong> feast (29 Jun). The only mismatch was <code>[FEAST_CLASS]</code>: the Ustav <code>29.VI</code> row was tagged <code>"Господнє свято"</code> (a Lord's feast) but Peter &amp; Paul is an <em>apostles'</em> feast — and the tag contradicted the row's own <code>antiphon_type="WEEKDAY"</code>. Corrected to <code>"полієлей"</code>, which matches what the engine already renders (zero behaviour change); readings/cycle/tone always matched. The broader class of generically-tagged feasts is tracked in <a href="https://github.com/SichAlexander/Molutovnuk/issues/1540">#1540</a>.</p>
+<p><strong>2 · iOS — SKIE Swift-surface break</strong> (resolved, <a href="https://github.com/SichAlexander/Molutovnuk/pull/1537">#1537</a>). Wave LL added <code>contentCs</code>/<code>contentUk</code> to the shared KMP <code>LiturgyDisplayBlock</code>; SKIE doesn't bridge Kotlin default args, so every field becomes a <em>required</em> Swift init parameter — two memberwise-init call sites broke and the iOS <em>local</em> gate was red (the LL PR ran only the Android gate). Fixed by threading the fields through; iOS still renders <code>content</code> (CS↔UA stays an Android-only parity gap, not a regression). <a href="https://github.com/SichAlexander/Molutovnuk/pull/1538">#1538</a> then added a SKIE Swift-surface guard so this class is caught automatically next time. This is the exact cross-platform failure class this audit flagged as iOS's biggest caveat.</p>
+<p><strong>Structural note:</strong> the liturgy canary keying off <code>LocalDate.now()</code> makes <code>main</code>'s CI calendar-dependent — each latent mis-tag surfaces one feast-day at a time (#1540 tracks the optional soft-warning complement). The macOS <code>ios-kmp-tests</code> job remains <code>if: false</code> (#1486), so the iOS gate stays local-only.</p>
 </div>
 </section>
 
